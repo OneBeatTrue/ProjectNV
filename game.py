@@ -39,13 +39,16 @@ def generate_level(level):
                 Tile('wall', x, y)
             elif level[y][x] == '%':
                 Tile('stair', x, y)
+            elif level[y][x] == '*':
+                Tile('empty', x, y)
+                new_button = Button(x, y)
             elif level[y][x] == '@':
                 Tile('empty', x, y)
                 xp = x
                 yp = y
     new_player = Player(xp, yp)
     # вернем игрока, а также размер поля в клетках
-    return new_player, x, y
+    return new_player, x, y, new_button
 
 
 def start_screen():
@@ -178,41 +181,6 @@ def start_screen():
                 intro_rect.x = 55
                 text_coord += intro_rect.height
                 screen.blit(string_rendered, intro_rect)
-
-    font = pygame.font.Font(None, 30)
-    text_coord = 50
-    for line in play_text:
-        string_rendered = font.render(line, 1, pygame.Color('white'))
-        intro_rect = string_rendered.get_rect()
-        text_coord += 110
-        intro_rect.top = text_coord
-        intro_rect.x = 55
-        text_coord += intro_rect.height
-        screen.blit(string_rendered, intro_rect)
-    for line in load_text:
-        string_rendered = font.render(line, 1, pygame.Color('white'))
-        intro_rect = string_rendered.get_rect()
-        text_coord += 40
-        intro_rect.top = text_coord
-        intro_rect.x = 55
-        text_coord += intro_rect.height
-        screen.blit(string_rendered, intro_rect)
-    for line in options_text:
-        string_rendered = font.render(line, 1, pygame.Color('white'))
-        intro_rect = string_rendered.get_rect()
-        text_coord += 40
-        intro_rect.top = text_coord
-        intro_rect.x = 55
-        text_coord += intro_rect.height
-        screen.blit(string_rendered, intro_rect)
-    for line in quit_text:
-        string_rendered = font.render(line, 1, pygame.Color('white'))
-        intro_rect = string_rendered.get_rect()
-        text_coord += 40
-        intro_rect.top = text_coord
-        intro_rect.x = 55
-        text_coord += intro_rect.height
-        screen.blit(string_rendered, intro_rect)
     while True:
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
@@ -255,6 +223,23 @@ class Camera:
     def update(self, target):
         self.dx = -(target.rect.x + target.rect.w // 2 - WIDTH // 2)
         self.dy = -(target.rect.y + target.rect.h // 2 - HEIGHT // 2)
+
+class Button(pygame.sprite.Sprite):
+    def __init__(self, pos_x, pos_y):
+        super().__init__(button_group, all_sprites)
+        self.image = button_image_unclicked
+        self.rect = self.image.get_rect().move(tile_width * pos_x, tile_height * pos_y)
+
+    def update(self):
+        if pygame.sprite.spritecollideany(self, player_group):
+            self.image = button_image_clicked
+
+
+class Arrow(pygame.sprite.Sprite):
+    def __init__(self, pos_x, pos_y):
+        super().__init__()
+        self.image = pygame.transform.scale(arrow_image, (40, 40))
+        self.rect = self.image.get_rect()
 
 
 class Player(pygame.sprite.Sprite):
@@ -309,6 +294,7 @@ class Player(pygame.sprite.Sprite):
             if definition != self.definition:
                 self.image = pygame.transform.flip(self.image, True, False)
                 self.definition = definition
+        # self.rect = self.image.get_rect().move(tile_width * self.rect.x + 15, tile_height * self.rect.y + 5)
 
     def gravity(self):
         global gravity
@@ -340,18 +326,22 @@ class Player(pygame.sprite.Sprite):
             gravity = 1
             # self.picture()
 
-
 size = WIDTH, HEIGHT = 1000, 500
 screen = pygame.display.set_mode(size)
+# pygame.mouse.set_visible(False)
 screen.fill(pygame.Color('black'))
 clock = pygame.time.Clock()
 key = [False, False, False, False]
 gravity = 1
 FPS = 50
-tile_images = {'wall': load_image('box.png'), 'stair': load_image('stair.png'), 'empty': load_image('fill1.png')}
+tile_images = {'wall': load_image('box.png'), 'stair': load_image('stair.png'), 'empty': load_image('grass.png')}
 player_image_static = load_image('hero.png', -1)
 player_image_jumping = load_image('herojump.png', -1)
 player_image_climbing = load_image('heroback.png', -1)
+button_image_unclicked = load_image('button1.png', -1)
+button_image_clicked = load_image('button2.png', -1)
+arrow_image = load_image("arrow.png")
+arrow = Arrow(0, 0)
 tile_width = tile_height = 50
 # группы спрайтов
 all_sprites = pygame.sprite.Group()
@@ -359,10 +349,11 @@ tiles_group = pygame.sprite.Group()
 player_group = pygame.sprite.Group()
 walls_group = pygame.sprite.Group()
 stairs_group = pygame.sprite.Group()
+button_group = pygame.sprite.Group()
 camera = Camera()
 
 start_screen()
-player, level_x, level_y = generate_level(load_level('map.txt'))
+player, level_x, level_y, button = generate_level(load_level('map.txt'))
 running = True
 while running:
     for event in pygame.event.get():
@@ -391,11 +382,14 @@ while running:
                 key[2] = False
             if event.key == pygame.K_a:
                 key[3] = False
-
+        if event.type == pygame.MOUSEMOTION:
+            x, y = event.pos
+            arrow.rect.x = x
+            arrow.rect.y = y
             # print(key)
     player.gravity()
     player_group.update(key)
-
+    button_group.update()
 
     # изменяем ракурс камеры
     camera.update(player)
@@ -407,3 +401,9 @@ while running:
     pygame.display.flip()
     clock.tick(FPS)
 pygame.quit()
+
+
+
+
+
+
