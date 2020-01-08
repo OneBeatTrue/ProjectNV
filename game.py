@@ -187,6 +187,7 @@ class Player(pygame.sprite.Sprite):
             gravity = 1
             # self.picture()
 
+
 size = WIDTH, HEIGHT = 1000, 500
 screen = pygame.display.set_mode(size)
 screen.fill(pygame.Color('black'))
@@ -194,7 +195,7 @@ clock = pygame.time.Clock()
 key = [False, False, False, False]
 gravity = 1
 FPS = 50
-tile_images = {'wall': load_image('box.png'), 'stair': load_image('stair.png'), 'empty': load_image('grass.png')}
+tile_images = {'wall': load_image('box.png'), 'stair': load_image('stair.png'), 'empty': load_image('fill1.png')}
 player_image_static = load_image('hero.png', -1)
 player_image_jumping = load_image('herojump.png', -1)
 player_image_climbing = load_image('heroback.png', -1)
