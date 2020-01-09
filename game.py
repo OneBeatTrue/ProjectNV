@@ -326,8 +326,9 @@ class Player(pygame.sprite.Sprite):
             gravity = 1
             # self.picture()
 
-size = WIDTH, HEIGHT = 1000, 500
-screen = pygame.display.set_mode(size)
+size = WIDTH, HEIGHT = 1600, 900
+# screen = pygame.display.set_mode(size)
+screen = pygame.display.set_mode(size, pygame.FULLSCREEN)
 # pygame.mouse.set_visible(False)
 screen.fill(pygame.Color('black'))
 clock = pygame.time.Clock()
