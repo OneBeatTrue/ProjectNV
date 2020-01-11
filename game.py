@@ -56,6 +56,14 @@ def generate_level(level):
     return new_player, x, y, button, doors, False
 
 
+def clean():
+    global player, level_x, level_y, button, doors, next_level
+    for i in all_sprites:
+        all_sprites.remove(i)
+        i.kill()
+    player, level_x, level_y, button, doors, next_level = generate_level(load_level(levels_list[now_level]))
+
+
 def start_screen():
     play_text = ["S.T.A.R.T. G.A.M.E."]
     load_text = ["L.O.A.D. G.A.M.E."]
@@ -198,7 +206,10 @@ def start_screen():
                 terminate()
             if event.type == pygame.MOUSEMOTION:
                 update(event.pos, [50, 250, 250, 300], [50, 250, 310, 360], [50, 250, 370, 420], [50, 250, 430, 480])
+                x, y = event.pos
+                arrow.update(x, y)
             if event.type == pygame.MOUSEBUTTONDOWN and update(event.pos, [50, 250, 250, 300], [50, 250, 310, 360], [50, 250, 370, 420], [50, 250, 430, 480]) == 1:
+                clean()
                 return  # начинаем
             if event.type == pygame.MOUSEBUTTONDOWN and update(event.pos, [50, 250, 250, 300], [50, 250, 310, 360], [50, 250, 370, 420], [50, 250, 430, 480]) == 4:
                 terminate()
@@ -247,9 +258,9 @@ class Door(pygame.sprite.Sprite):
         self.definition = definition
 
     def update(self):
-        global next
+        global next_level
         self.image = pygame.transform.flip(door_image_opened, not self.definition, False)
-        next = True
+        next_level = True
 
 
 class Button(pygame.sprite.Sprite):
@@ -266,9 +277,13 @@ class Button(pygame.sprite.Sprite):
 
 class Arrow(pygame.sprite.Sprite):
     def __init__(self, pos_x, pos_y):
-        super().__init__()
+        super().__init__(arrow_group, all_sprites)
         self.image = pygame.transform.scale(arrow_image, (40, 40))
         self.rect = self.image.get_rect()
+
+    def update(self, pos_x, pos_y):
+        self.rect.x = pos_x
+        self.rect.y = pos_y
 
 
 class Player(pygame.sprite.Sprite):
@@ -282,7 +297,7 @@ class Player(pygame.sprite.Sprite):
         self.vfall = 0
 
     def update(self, key):
-        global gravity, next
+        global gravity, next_level
         if key[0] and self.ground:
             self.vfall = -20
             if pygame.sprite.spritecollideany(self, walls_group):
@@ -309,8 +324,20 @@ class Player(pygame.sprite.Sprite):
                 self.rect.x += self.vx
                 # print(3)
         # self.picture()
-        if len(pygame.sprite.spritecollide(self, doors_group, False)) == 4 and next:
-            terminate()
+        if len(pygame.sprite.spritecollide(self, doors_group, False)) == 4 and next_level:
+            global player, level_x, level_y, button, doors, now_level, levels_list
+            screen.fill(pygame.Color('black'))
+            now_level += 1
+            if len(levels_list) == now_level:
+                now_level = 0
+                start_screen()
+            else:
+                clean()
+                pygame.display.flip()
+            with open("now_level.txt", 'w', encoding='utf-8') as f:
+                f.write(str(now_level))
+            print(now_level)
+            # terminate()
 
     def picture(self, definition=None):
         if self.ground:
@@ -358,8 +385,8 @@ class Player(pygame.sprite.Sprite):
             # self.picture()
 
 size = WIDTH, HEIGHT = 1600, 900
-# screen = pygame.display.set_mode(size)
-screen = pygame.display.set_mode(size, pygame.FULLSCREEN)
+screen = pygame.display.set_mode(size)
+# screen = pygame.display.set_mode(size, pygame.FULLSCREEN)
 # pygame.mouse.set_visible(False)
 screen.fill(pygame.Color('black'))
 clock = pygame.time.Clock()
@@ -374,9 +401,11 @@ button_image_unclicked = load_image('button1.png', -1)
 button_image_clicked = load_image('button2.png', -1)
 door_image_closed = load_image('door1.png')
 door_image_opened = load_image('door2.png')
-arrow_image = load_image("arrow.png")
-arrow = Arrow(0, 0)
+arrow_image = load_image("arrow2.png")
 tile_width = tile_height = 50
+levels_list = ['level1.txt', 'level2.txt', 'level3.txt']
+with open("data/now_level.txt", 'r') as mapFile:
+    now_level = int([line.strip() for line in mapFile][0])
 # группы спрайтов
 all_sprites = pygame.sprite.Group()
 tiles_group = pygame.sprite.Group()
@@ -385,10 +414,13 @@ walls_group = pygame.sprite.Group()
 stairs_group = pygame.sprite.Group()
 button_group = pygame.sprite.Group()
 doors_group = pygame.sprite.Group()
+arrow_group = pygame.sprite.Group()
 camera = Camera()
+arrow = Arrow(0, 0)
 
 start_screen()
-player, level_x, level_y, button, doors, next = generate_level(load_level('map.txt'))
+player, level_x, level_y, button, doors, next_level = None, None, None, None, None, None
+clean()
 running = True
 while running:
     for event in pygame.event.get():
@@ -419,8 +451,9 @@ while running:
                 key[3] = False
         if event.type == pygame.MOUSEMOTION:
             x, y = event.pos
-            arrow.rect.x = x
-            arrow.rect.y = y
+            arrow.update(x, y)
+            if pygame.mouse.get_focused():
+                arrow_group.draw(screen)
             # print(key)
     player.gravity()
     player_group.update(key)
@@ -429,6 +462,7 @@ while running:
     # изменяем ракурс камеры
 
     camera.update(player)
+
     # обновляем положение всех спрайтов
     for sprite in all_sprites:
         camera.apply(sprite)
