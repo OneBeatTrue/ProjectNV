@@ -94,7 +94,7 @@ def clean():
 
 
 def start_screen():
-    global fon_sound
+    # global fon_sound
     play_text = ["S.T.A.R.T. G.A.M.E."]
     load_text = ["L.O.A.D. G.A.M.E."]
     options_text = ["O.P.T.I.O.N.S."]
@@ -113,6 +113,54 @@ def start_screen():
     # pygame.draw.polygon(screen, pygame.Color('gray'), [(50, 310), (50, 360), (250, 360), (250, 310)])
     # pygame.draw.polygon(screen, pygame.Color('gray'), [(50, 370), (50, 420), (250, 420), (250, 370)])
     # pygame.draw.polygon(screen, pygame.Color('gray'), [(50, 430), (50, 480), (250, 480), (250, 430)])
+
+    pygame.draw.polygon(screen, pygame.Color('black'), [(50, 250), (50, 300), (250, 300), (250, 250)])
+    font = pygame.font.Font(None, 30)
+    text_coord = 50
+    for line in play_text:
+        string_rendered = font.render(line, 1, pygame.Color('white'))
+        intro_rect = string_rendered.get_rect()
+        text_coord += 210
+        intro_rect.top = text_coord
+        intro_rect.x = 55
+        text_coord += intro_rect.height
+        screen.blit(string_rendered, intro_rect)
+
+    pygame.draw.polygon(screen, pygame.Color('black'), [(50, 310), (50, 360), (250, 360), (250, 310)])
+    font = pygame.font.Font(None, 30)
+    text_coord = 50
+    for line in load_text:
+        string_rendered = font.render(line, 1, pygame.Color('white'))
+        intro_rect = string_rendered.get_rect()
+        text_coord += 270
+        intro_rect.top = text_coord
+        intro_rect.x = 55
+        text_coord += intro_rect.height
+        screen.blit(string_rendered, intro_rect)
+
+    pygame.draw.polygon(screen, pygame.Color('black'), [(50, 370), (50, 420), (250, 420), (250, 370)])
+    font = pygame.font.Font(None, 30)
+    text_coord = 50
+    for line in options_text:
+        string_rendered = font.render(line, 1, pygame.Color('white'))
+        intro_rect = string_rendered.get_rect()
+        text_coord += 330
+        intro_rect.top = text_coord
+        intro_rect.x = 55
+        text_coord += intro_rect.height
+        screen.blit(string_rendered, intro_rect)
+
+    pygame.draw.polygon(screen, pygame.Color('black'), [(50, 430), (50, 480), (250, 480), (250, 430)])
+    font = pygame.font.Font(None, 30)
+    text_coord = 50
+    for line in quit_text:
+        string_rendered = font.render(line, 1, pygame.Color('white'))
+        intro_rect = string_rendered.get_rect()
+        text_coord += 390
+        intro_rect.top = text_coord
+        intro_rect.x = 55
+        text_coord += intro_rect.height
+        screen.blit(string_rendered, intro_rect)
 
     def update(*args):
         global flag
@@ -154,6 +202,7 @@ def start_screen():
         y1_2 = args[2][2]
         y2_2 = args[2][3]
         if x1_2 <= a <= x2_2 and y1_2 <= b <= y2_2:
+            flag = 2
             pygame.draw.polygon(screen, pygame.Color('red'), [(50, 310), (50, 360), (250, 360), (250, 310)])
             font = pygame.font.Font(None, 30)
             text_coord = 50
@@ -183,6 +232,7 @@ def start_screen():
         y1_3 = args[3][2]
         y2_3 = args[3][3]
         if x1_3 <= a <= x2_3 and y1_3 <= b <= y2_3:
+            flag = 3
             pygame.draw.polygon(screen, pygame.Color('red'), [(50, 370), (50, 420), (250, 420), (250, 370)])
             font = pygame.font.Font(None, 30)
             text_coord = 50
@@ -236,11 +286,12 @@ def start_screen():
                 intro_rect.x = 55
                 text_coord += intro_rect.height
                 screen.blit(string_rendered, intro_rect)
+
     while True:
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 terminate()
-            if event.type == pygame.MOUSEMOTION:
+            if event.type == pygame.MOUSEMOTION34:
                 update(event.pos, [50, 250, 250, 300], [50, 250, 310, 360], [50, 250, 370, 420], [50, 250, 430, 480])
                 x, y = event.pos
                 arrow.update(x, y)
@@ -249,9 +300,78 @@ def start_screen():
                 return  # начинаем
             if event.type == pygame.MOUSEBUTTONDOWN and flag == 4:
                 terminate()
+            if event.type == pygame.MOUSEBUTTONDOWN and flag == 3:
+                options()
         pygame.display.flip()
         clock.tick(FPS)
 
+
+def options():
+    opt_text = ["<.B.A.C.K."]
+    fon = pygame.transform.scale(load_image('fon2.jpg'), (WIDTH, HEIGHT))
+    screen.blit(fon, (0, 0))
+
+    pygame.draw.polygon(screen, pygame.Color('black'), [(50, 250), (50, 300), (250, 300), (250, 250)])
+    font = pygame.font.Font(None, 30)
+    text_coord = 50
+    for line in opt_text:
+        string_rendered = font.render(line, 1, pygame.Color('white'))
+        intro_rect = string_rendered.get_rect()
+        text_coord += 210
+        intro_rect.top = text_coord
+        intro_rect.x = 55
+        text_coord += intro_rect.height
+        screen.blit(string_rendered, intro_rect)
+
+    def update(*args):
+        global flag1
+        flag1 = 0
+        a = args[0][0]
+        b = args[0][1]
+        x1_1 = args[1][0]
+        x2_1 = args[1][1]
+        y1_1 = args[1][2]
+        y2_1 = args[1][3]
+
+        if x1_1 <= a <= x2_1 and y1_1 <= b <= y2_1:
+            flag1 = 1
+            pygame.draw.polygon(screen, pygame.Color('red'), [(50, 250), (50, 300), (250, 300), (250, 250)])
+            font = pygame.font.Font(None, 30)
+            text_coord = 50
+            for line in opt_text:
+                string_rendered = font.render(line, 1, pygame.Color('white'))
+                intro_rect = string_rendered.get_rect()
+                text_coord += 210
+                intro_rect.top = text_coord
+                intro_rect.x = 55
+                text_coord += intro_rect.height
+                screen.blit(string_rendered, intro_rect)
+        else:
+            pygame.draw.polygon(screen, pygame.Color('black'), [(50, 250), (50, 300), (250, 300), (250, 250)])
+            font = pygame.font.Font(None, 30)
+            text_coord = 50
+            for line in opt_text:
+                string_rendered = font.render(line, 1, pygame.Color('white'))
+                intro_rect = string_rendered.get_rect()
+                text_coord += 210
+                intro_rect.top = text_coord
+                intro_rect.x = 55
+                text_coord += intro_rect.height
+                screen.blit(string_rendered, intro_rect)
+
+    while True:
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                terminate()
+            if event.type == pygame.MOUSEMOTION:
+                update(event.pos, [50, 250, 250, 300], [50, 250, 310, 360], [50, 250, 370, 420], [50, 250, 430, 480])
+                x, y = event.pos
+                arrow.update(x, y)
+            if event.type == pygame.MOUSEBUTTONDOWN and flag1 == 1:
+                start_screen()
+                return
+        pygame.display.flip()
+        clock.tick(FPS)
 
 
 def terminate():
@@ -268,6 +388,7 @@ class Tile(pygame.sprite.Sprite):
             self.add(walls_group)
         if tile_type == "stair":
             self.add(stairs_group)
+
 
 class Camera:
     # зададим начальный сдвиг камеры
@@ -335,7 +456,6 @@ class Bullet(pygame.sprite.Sprite):
             self.speed = -25
             self.image = pygame.transform.flip(self.image, True, False)
         self.rect.centery = y - 15
-
 
     def update(self):
         self.rect.x += self.speed
@@ -438,7 +558,7 @@ class Player(pygame.sprite.Sprite):
                 self.rect.x += self.vx
             # if self.ground:
             #     step_sound.play()
-                # print(3)
+            # print(3)
         # self.picture()
         if len(pygame.sprite.spritecollide(self, doors_group, False)) == 4 and next_level:
             global player, level_x, level_y, button, doors, now_level, levels_list
@@ -504,7 +624,7 @@ class Player(pygame.sprite.Sprite):
             self.ground = False
             self.vfall += self.g
             # if self.vfall != 1:
-                # self.image = pygame.transform.rotate(self.image, 10)
+            # self.image = pygame.transform.rotate(self.image, 10)
         if pygame.sprite.spritecollideany(self, stairs_group):
             self.ground = True
             # self.picture()
@@ -616,6 +736,11 @@ while running:
     pygame.display.flip()
     clock.tick(FPS)
 pygame.quit()
+
+
+
+
+
 
 
 
