@@ -1,7 +1,20 @@
-import pygame
-import sys, os
+import pygame, sys, os, random
+from os import path
 
 pygame.init()
+size = WIDTH, HEIGHT = 1600, 900
+# screen = pygame.display.set_mode(size)
+screen = pygame.display.set_mode(size, pygame.FULLSCREEN)
+# pygame.mouse.set_visible(False)
+screen.fill(pygame.Color('black'))
+
+
+def create_particles(position):
+    # количество создаваемых частиц
+    particle_count = 60
+    # возможные скорости
+    for _ in range(particle_count):
+        Particle(position, random.choice(range(-2, 2)), random.choice(range(-10, 2)))
 
 
 def load_image(name, colorkey=None):
@@ -32,6 +45,7 @@ def generate_level(level):
     xp = 0
     yp = 0
     doors = list()
+    enemies = list()
     for y in range(len(level)):
         for x in range(len(level[y])):
             if level[y][x] == '.':
@@ -43,6 +57,15 @@ def generate_level(level):
             elif level[y][x] == '*':
                 Tile('empty', x, y)
                 button = Button(x, y)
+            elif level[y][x] == '&':
+                Tile('empty', x, y)
+                button = Button(x, y)
+            elif level[y][x] == ')':
+                Tile('empty', x, y)
+                enemies.append([x, y, True])
+            elif level[y][x] == '(':
+                Tile('empty', x, y)
+                enemies.append([x, y, False])
             elif level[y][x] == '>':
                 doors.append(Door(x, y, True))
             elif level[y][x] == '<':
@@ -51,31 +74,45 @@ def generate_level(level):
                 Tile('empty', x, y)
                 xp = x
                 yp = y
+    enemies = [Enemy(i[0], i[1], i[2]) for i in enemies]
     new_player = Player(xp, yp)
+    pygame.mixer.music.stop()
+    pygame.mixer.music.load(tracklist[now_level])
+    pygame.mixer.music.set_volume(0.4)
+    pygame.mixer.music.play(loops=-1)
     # вернем игрока, а также размер поля в клетках
-    return new_player, x, y, button, doors, False
+    return new_player, enemies, x, y, button, doors, False
 
 
 def clean():
-    global player, level_x, level_y, button, doors, next_level
+    global player, level_x, level_y, button, doors, next_level, key
     for i in all_sprites:
         all_sprites.remove(i)
         i.kill()
-    player, level_x, level_y, button, doors, next_level = generate_level(load_level(levels_list[now_level]))
+    key = [False, False, False, False]
+    player, enemies, level_x, level_y, button, doors, next_level = generate_level(load_level(levels_list[now_level]))
 
 
 def start_screen():
+    global fon_sound
     play_text = ["S.T.A.R.T. G.A.M.E."]
     load_text = ["L.O.A.D. G.A.M.E."]
     options_text = ["O.P.T.I.O.N.S."]
     quit_text = ["Q.U.I.T."]
     fon = pygame.transform.scale(load_image('fon2.jpg'), (WIDTH, HEIGHT))
     screen.blit(fon, (0, 0))
+    pygame.mixer.music.stop()
+    pygame.mixer.music.load(tracklist[3])
+    pygame.mixer.music.set_volume(0.7)
+    pygame.mixer.music.play(loops=-1)
+    # fon_sound = pygame.mixer.Sound(path.join('sounds', tracklist[3]))
+    # fon_sound.set_volume(0.2)
+    # fon_sound.play(loops=-1)
 
-    #pygame.draw.polygon(screen, pygame.Color('gray'), [(50, 250), (50, 300), (250, 300), (250, 250)])
-    #pygame.draw.polygon(screen, pygame.Color('gray'), [(50, 310), (50, 360), (250, 360), (250, 310)])
-    #pygame.draw.polygon(screen, pygame.Color('gray'), [(50, 370), (50, 420), (250, 420), (250, 370)])
-    #pygame.draw.polygon(screen, pygame.Color('gray'), [(50, 430), (50, 480), (250, 480), (250, 430)])
+    # pygame.draw.polygon(screen, pygame.Color('gray'), [(50, 250), (50, 300), (250, 300), (250, 250)])
+    # pygame.draw.polygon(screen, pygame.Color('gray'), [(50, 310), (50, 360), (250, 360), (250, 310)])
+    # pygame.draw.polygon(screen, pygame.Color('gray'), [(50, 370), (50, 420), (250, 420), (250, 370)])
+    # pygame.draw.polygon(screen, pygame.Color('gray'), [(50, 430), (50, 480), (250, 480), (250, 430)])
 
     def update(*args):
         flag = 0
@@ -286,18 +323,94 @@ class Arrow(pygame.sprite.Sprite):
         self.rect.y = pos_y
 
 
+class Bullet(pygame.sprite.Sprite):
+    def __init__(self, x, y, definition):
+        pygame.sprite.Sprite.__init__(self)
+        self.image = pygame.transform.scale(bullet_image, (20, 10))
+        self.rect = self.image.get_rect()
+        if definition:
+            self.rect.centerx = x + 10
+            self.speed = 25
+        else:
+            self.rect.centerx = x - 10
+            self.speed = -25
+            self.image = pygame.transform.flip(self.image, True, False)
+        self.rect.centery = y - 15
+
+
+    def update(self):
+        self.rect.x += self.speed
+        # убить, если он заходит за верхнюю часть экрана
+        if pygame.sprite.spritecollideany(self, walls_group):
+            self.kill()
+
+
+class Particle(pygame.sprite.Sprite):
+    # сгенерируем частицы разного размера
+    fire = [load_image("blood.png", -1)]
+    for scale in (1, 2, 3):
+        fire.append(pygame.transform.scale(fire[0], (scale, scale)))
+
+    def __init__(self, pos, dx, dy):
+        super().__init__(blood_group, all_sprites)
+        self.image = random.choice(self.fire)
+        self.rect = self.image.get_rect()
+        # у каждой частицы своя скорость — это вектор
+        self.velocity = [dx, dy]
+        # и свои координаты
+        self.rect.x, self.rect.y = pos
+        # гравитация будет одинаковой (значение константы)
+        self.g = 1
+
+    def update(self):
+        # применяем гравитационный эффект:
+        # движение с ускорением под действием гравитации
+        self.velocity[1] += self.g
+        # перемещаем частицу
+        self.rect.x += self.velocity[0]
+        self.rect.y += self.velocity[1]
+        # убиваем, если частица ушла за экран
+        if pygame.sprite.spritecollideany(self, walls_group):
+            self.kill()
+
+
+class Enemy(pygame.sprite.Sprite):
+    def __init__(self, pos_x, pos_y, defenition):
+        super().__init__(enemies_group, all_sprites)
+        self.image = pygame.transform.scale(enemy_image, (80, 80))
+        if not defenition:
+            self.image = pygame.transform.flip(self.image, True, False)
+        self.rect = self.image.get_rect().move(tile_width * pos_x, tile_height * pos_y)
+        # self.rect.x -= 15
+        self.definition = defenition
+
+    def update(self):
+        if pygame.sprite.spritecollideany(self, bullets_group):
+            self.kill()
+            death_sound.play()
+            create_particles((self.rect.centerx, self.rect.centery))
+        if pygame.sprite.spritecollideany(self, walls_group):
+            if pygame.sprite.spritecollide(self, walls_group, False)[0].rect.y <= self.rect.y:
+                while pygame.sprite.spritecollideany(self, walls_group):
+                    self.rect.y += 1
+            else:
+                while pygame.sprite.spritecollideany(self, walls_group):
+                    self.rect.y -= 1
+
+
 class Player(pygame.sprite.Sprite):
     def __init__(self, pos_x, pos_y):
         super().__init__(player_group, all_sprites)
         self.image = pygame.transform.scale(player_image_static, (40, 80))
         self.rect = self.image.get_rect().move(tile_width * pos_x + 15, tile_height * pos_y + 5)
+        self.g = 1
         self.ground = False
         self.definition = True
         self.vx = 10
         self.vfall = 0
 
     def update(self, key):
-        global gravity, next_level
+        global next_level, fon_sound
         if key[0] and self.ground:
             self.vfall = -20
             if pygame.sprite.spritecollideany(self, walls_group):
@@ -311,6 +424,8 @@ class Player(pygame.sprite.Sprite):
             self.rect.x += self.vx
             if pygame.sprite.spritecollideany(self, walls_group):
                 self.rect.x -= self.vx
+                # if self.ground:
+                #     step_sound.play()
                 # print(1)
         if key[2]:
             self.rect.y += self.vx
@@ -322,6 +437,8 @@ class Player(pygame.sprite.Sprite):
             self.rect.x -= self.vx
             if pygame.sprite.spritecollideany(self, walls_group):
                 self.rect.x += self.vx
+            # if self.ground:
+            #     step_sound.play()
                 # print(3)
         # self.picture()
         if len(pygame.sprite.spritecollide(self, doors_group, False)) == 4 and next_level:
@@ -330,20 +447,35 @@ class Player(pygame.sprite.Sprite):
             now_level += 1
             if len(levels_list) == now_level:
                 now_level = 0
+                with open("data/now_level.txt", 'w', encoding='utf-8') as f:
+                    f.write(str(now_level))
                 start_screen()
             else:
                 clean()
                 pygame.display.flip()
-            with open("now_level.txt", 'w', encoding='utf-8') as f:
-                f.write(str(now_level))
-            print(now_level)
+                print(now_level)
+                with open("data/now_level.txt", 'w', encoding='utf-8') as f:
+                    f.write(str(now_level))
+
+            # fon_sound.pause()
+            # fon_sound = pygame.mixer.Sound(path.join('sounds', tracklist[now_level]))
+            # fon_sound.set_volume(0.2)
+            # fon_sound.play(loops=-1)
+            # print(now_level)
             # terminate()
+
+    def shoot(self):
+        bullet = Bullet(self.rect.centerx, self.rect.centery, self.definition)
+        all_sprites.add(bullet)
+        bullets_group.add(bullet)
+        shoot_sound.play()
+        # shoot_sound.play()
 
     def picture(self, definition=None):
         if self.ground:
             self.image = pygame.transform.scale(player_image_static, (40, 80))
         else:
-            self.image = pygame.transform.scale(player_image_jumping, (60, 60))
+            self.image = pygame.transform.scale(player_image_jumping, (40, 80))
         if pygame.sprite.spritecollideany(self, stairs_group):
             self.image = pygame.transform.scale(player_image_climbing, (40, 80))
         if not self.definition:
@@ -355,7 +487,6 @@ class Player(pygame.sprite.Sprite):
         # self.rect = self.image.get_rect().move(tile_width * self.rect.x + 15, tile_height * self.rect.y + 5)
 
     def gravity(self):
-        global gravity
         self.rect.y += self.vfall
         if pygame.sprite.spritecollideany(self, walls_group):
             if pygame.sprite.spritecollide(self, walls_group, False)[0].rect.y <= self.rect.y:
@@ -372,31 +503,30 @@ class Player(pygame.sprite.Sprite):
         else:
             self.picture()
             self.ground = False
-            self.vfall += gravity
+            self.vfall += self.g
             # if self.vfall != 1:
                 # self.image = pygame.transform.rotate(self.image, 10)
         if pygame.sprite.spritecollideany(self, stairs_group):
             self.ground = True
             # self.picture()
-            gravity = 0
+            self.g = 0
             self.vfall = 0
         else:
-            gravity = 1
+            self.g = 1
             # self.picture()
 
-size = WIDTH, HEIGHT = 1600, 900
-screen = pygame.display.set_mode(size)
-# screen = pygame.display.set_mode(size, pygame.FULLSCREEN)
-# pygame.mouse.set_visible(False)
-screen.fill(pygame.Color('black'))
+
+pygame.display.set_icon(load_image('icon.png'))
+pygame.display.set_caption('B.U.L.L.E.T.')
 clock = pygame.time.Clock()
 key = [False, False, False, False]
-gravity = 1
-FPS = 50
-tile_images = {'wall': load_image('box.png'), 'stair': load_image('stair.png'), 'empty': load_image('grass.png')}
+FPS = 60
+tile_images = {'wall': load_image('box.png'), 'stair': load_image('stair.png'), 'empty': load_image('tile.png')}
 player_image_static = load_image('hero.png', -1)
 player_image_jumping = load_image('herojump.png', -1)
 player_image_climbing = load_image('heroback.png', -1)
+enemy_image = load_image('enemy.png', -1)
+bullet_image = load_image('bullet.png', -1)
 button_image_unclicked = load_image('button1.png', -1)
 button_image_clicked = load_image('button2.png', -1)
 door_image_closed = load_image('door1.png')
@@ -404,6 +534,14 @@ door_image_opened = load_image('door2.png')
 arrow_image = load_image("arrow2.png")
 tile_width = tile_height = 50
 levels_list = ['level1.txt', 'level2.txt', 'level3.txt']
+shoot_sound = pygame.mixer.Sound(path.join('sounds', 'shoot.wav'))
+death_sound = pygame.mixer.Sound(path.join('sounds', 'death.wav'))
+# step_sound = pygame.mixer.Sound(path.join('sounds', 'step.wav'))
+tracklist = ['sounds/' + i for i in ['level1.mp3', 'level2.mp3', 'level3.mp3', 'main_theme.wav']]
+pygame.mixer.music.load(tracklist[3])
+pygame.mixer.music.set_volume(0.4)
+pygame.mixer.music.play(loops=-1)
+# pygame.mixer.music.play()
 with open("data/now_level.txt", 'r') as mapFile:
     now_level = int([line.strip() for line in mapFile][0])
 # группы спрайтов
@@ -415,11 +553,14 @@ stairs_group = pygame.sprite.Group()
 button_group = pygame.sprite.Group()
 doors_group = pygame.sprite.Group()
 arrow_group = pygame.sprite.Group()
+bullets_group = pygame.sprite.Group()
+enemies_group = pygame.sprite.Group()
+blood_group = pygame.sprite.Group()
 camera = Camera()
 arrow = Arrow(0, 0)
 
 start_screen()
-player, level_x, level_y, button, doors, next_level = None, None, None, None, None, None
+player, enemies, level_x, level_y, button, doors, next_level = None, None, None, None, None, None, None
 clean()
 running = True
 while running:
@@ -427,6 +568,9 @@ while running:
         if event.type == pygame.QUIT:
             running = False
         if event.type == pygame.KEYDOWN:
+            if event.key == pygame.K_SPACE:
+                player.shoot()
+                # shoot_sound.play()
             if event.key == pygame.K_w:
                 key[0] = True
                 # player.picture()
@@ -458,7 +602,9 @@ while running:
     player.gravity()
     player_group.update(key)
     button_group.update()
-
+    bullets_group.update()
+    enemies_group.update()
+    blood_group.update()
     # изменяем ракурс камеры
 
     camera.update(player)
