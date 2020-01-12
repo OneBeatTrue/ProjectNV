@@ -115,6 +115,7 @@ def start_screen():
     # pygame.draw.polygon(screen, pygame.Color('gray'), [(50, 430), (50, 480), (250, 480), (250, 430)])
 
     def update(*args):
+        global flag
         flag = 0
         a = args[0][0]
         b = args[0][1]
@@ -135,7 +136,6 @@ def start_screen():
                 intro_rect.x = 55
                 text_coord += intro_rect.height
                 screen.blit(string_rendered, intro_rect)
-            return flag
         else:
             pygame.draw.polygon(screen, pygame.Color('black'), [(50, 250), (50, 300), (250, 300), (250, 250)])
             font = pygame.font.Font(None, 30)
@@ -224,7 +224,6 @@ def start_screen():
                 intro_rect.x = 55
                 text_coord += intro_rect.height
                 screen.blit(string_rendered, intro_rect)
-            return flag
         else:
             pygame.draw.polygon(screen, pygame.Color('black'), [(50, 430), (50, 480), (250, 480), (250, 430)])
             font = pygame.font.Font(None, 30)
@@ -245,10 +244,10 @@ def start_screen():
                 update(event.pos, [50, 250, 250, 300], [50, 250, 310, 360], [50, 250, 370, 420], [50, 250, 430, 480])
                 x, y = event.pos
                 arrow.update(x, y)
-            if event.type == pygame.MOUSEBUTTONDOWN and update(event.pos, [50, 250, 250, 300], [50, 250, 310, 360], [50, 250, 370, 420], [50, 250, 430, 480]) == 1:
+            if event.type == pygame.MOUSEBUTTONDOWN and flag == 1:
                 clean()
                 return  # начинаем
-            if event.type == pygame.MOUSEBUTTONDOWN and update(event.pos, [50, 250, 250, 300], [50, 250, 310, 360], [50, 250, 370, 420], [50, 250, 430, 480]) == 4:
+            if event.type == pygame.MOUSEBUTTONDOWN and flag == 4:
                 terminate()
         pygame.display.flip()
         clock.tick(FPS)
