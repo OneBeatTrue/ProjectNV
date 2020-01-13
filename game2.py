@@ -302,6 +302,7 @@ def start_screen():
                 terminate()
             if event.type == pygame.MOUSEBUTTONDOWN and flag == 3:
                 options()
+                return
             if event.type == pygame.MOUSEBUTTONDOWN and flag == 2:
                 pass
         pygame.display.flip()
@@ -310,6 +311,7 @@ def start_screen():
 
 f = 0
 blood = 0
+
 
 def options():
     opt_text = ["<.B.A.C.K."]
@@ -485,8 +487,9 @@ def options():
                 x, y = event.pos
                 arrow.update(x, y)
             if event.type == pygame.MOUSEBUTTONDOWN and flag1 == 1:
-                # start_screen()
+                start_screen()
                 return
+
             if event.type == pygame.MOUSEBUTTONDOWN and flag1 == 2:
                 if f == 0:
                     vol = 0.0
@@ -495,11 +498,13 @@ def options():
                     vol = 0.5
                     f = 0
                 pygame.mixer.music.set_volume(abs(0.0 - vol))
+                update(event.pos, [50, 250, 250, 300], [50, 250, 310, 360], [50, 250, 370, 420])
             if event.type == pygame.MOUSEBUTTONDOWN and flag1 == 3:
                 if blood == 0:
                     blood = 1
                 else:
                     blood = 0
+                update(event.pos, [50, 250, 250, 300], [50, 250, 310, 360], [50, 250, 370, 420])
 
         pygame.display.flip()
         clock.tick(FPS)
