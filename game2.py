@@ -511,9 +511,13 @@ def options():
         clock.tick(FPS)
 
 flag2 = 0
+level = 2
+
 
 def load():
     global flag2
+    global level
+
     load_text = ["<.B.A.C.K."]
     l1_text = ["L.E.V.E.L. 1."]
     l2_text = ["L.E.V.E.L. 2."]
@@ -536,43 +540,43 @@ def load():
         text_coord += intro_rect.height
         screen.blit(string_rendered, intro_rect)
 
-    pygame.draw.polygon(screen, pygame.Color('black'), [(50, 310), (50, 360), (250, 360), (250, 310)])
-    font = pygame.font.Font(None, 30)
-    text_coord = 50
-    for line in l1_text:
-        string_rendered = font.render(line, 1, pygame.Color('white'))
-        intro_rect = string_rendered.get_rect()
-        text_coord += 270
-        intro_rect.top = text_coord
-        intro_rect.x = 55
-        text_coord += intro_rect.height
-        screen.blit(string_rendered, intro_rect)
+    if level >= 1:
+        pygame.draw.polygon(screen, pygame.Color('black'), [(50, 310), (50, 360), (250, 360), (250, 310)])
+        font = pygame.font.Font(None, 30)
+        text_coord = 50
+        for line in l1_text:
+            string_rendered = font.render(line, 1, pygame.Color('white'))
+            intro_rect = string_rendered.get_rect()
+            text_coord += 270
+            intro_rect.top = text_coord
+            intro_rect.x = 55
+            text_coord += intro_rect.height
+            screen.blit(string_rendered, intro_rect)
+    if level >= 2:
+        pygame.draw.polygon(screen, pygame.Color('black'), [(50, 370), (50, 420), (250, 420), (250, 370)])
+        font = pygame.font.Font(None, 30)
+        text_coord = 50
+        for line in l2_text:
+            string_rendered = font.render(line, 1, pygame.Color('white'))
+            intro_rect = string_rendered.get_rect()
+            text_coord += 330
+            intro_rect.top = text_coord
+            intro_rect.x = 55
+            text_coord += intro_rect.height
+            screen.blit(string_rendered, intro_rect)
 
-    pygame.draw.polygon(screen, pygame.Color('black'), [(50, 370), (50, 420), (250, 420), (250, 370)])
-    font = pygame.font.Font(None, 30)
-    text_coord = 50
-    for line in l2_text:
-        string_rendered = font.render(line, 1, pygame.Color('white'))
-        intro_rect = string_rendered.get_rect()
-        text_coord += 330
-        intro_rect.top = text_coord
-        intro_rect.x = 55
-        text_coord += intro_rect.height
-        screen.blit(string_rendered, intro_rect)
-
-    pygame.draw.polygon(screen, pygame.Color('black'), [(50, 430), (50, 480), (250, 480), (250, 430)])
-    font = pygame.font.Font(None, 30)
-    text_coord = 50
-    for line in l3_text:
-        string_rendered = font.render(line, 1, pygame.Color('white'))
-        intro_rect = string_rendered.get_rect()
-        text_coord += 390
-        intro_rect.top = text_coord
-        intro_rect.x = 55
-        text_coord += intro_rect.height
-        screen.blit(string_rendered, intro_rect)
-
-
+    if level >= 3:
+        pygame.draw.polygon(screen, pygame.Color('black'), [(50, 430), (50, 480), (250, 480), (250, 430)])
+        font = pygame.font.Font(None, 30)
+        text_coord = 50
+        for line in l3_text:
+            string_rendered = font.render(line, 1, pygame.Color('white'))
+            intro_rect = string_rendered.get_rect()
+            text_coord += 390
+            intro_rect.top = text_coord
+            intro_rect.x = 55
+            text_coord += intro_rect.height
+            screen.blit(string_rendered, intro_rect)
 
     def update(*args):
         global flag2
@@ -580,6 +584,7 @@ def load():
         flag2 = 0
         a = args[0][0]
         b = args[0][1]
+
         x1_1 = args[1][0]
         x2_1 = args[1][1]
         y1_1 = args[1][2]
@@ -611,95 +616,97 @@ def load():
                 text_coord += intro_rect.height
                 screen.blit(string_rendered, intro_rect)
 
-        x1_2 = args[2][0]
-        x2_2 = args[2][1]
-        y1_2 = args[2][2]
-        y2_2 = args[2][3]
-        if x1_2 <= a <= x2_2 and y1_2 <= b <= y2_2:
-            flag2 = 2
-            pygame.draw.polygon(screen, pygame.Color('red'), [(50, 310), (50, 360), (250, 360), (250, 310)])
-            font = pygame.font.Font(None, 30)
-            text_coord = 50
-            for line in l1_text:
-                string_rendered = font.render(line, 1, pygame.Color('white'))
-                intro_rect = string_rendered.get_rect()
-                text_coord += 270
-                intro_rect.top = text_coord
-                intro_rect.x = 55
-                text_coord += intro_rect.height
-                screen.blit(string_rendered, intro_rect)
-        else:
-            pygame.draw.polygon(screen, pygame.Color('black'), [(50, 310), (50, 360), (250, 360), (250, 310)])
-            font = pygame.font.Font(None, 30)
-            text_coord = 50
-            for line in l1_text:
-                string_rendered = font.render(line, 1, pygame.Color('white'))
-                intro_rect = string_rendered.get_rect()
-                text_coord += 270
-                intro_rect.top = text_coord
-                intro_rect.x = 55
-                text_coord += intro_rect.height
-                screen.blit(string_rendered, intro_rect)
+        if level >= 1:
+            x1_2 = args[2][0]
+            x2_2 = args[2][1]
+            y1_2 = args[2][2]
+            y2_2 = args[2][3]
+            if x1_2 <= a <= x2_2 and y1_2 <= b <= y2_2:
+                flag2 = 2
+                pygame.draw.polygon(screen, pygame.Color('red'), [(50, 310), (50, 360), (250, 360), (250, 310)])
+                font = pygame.font.Font(None, 30)
+                text_coord = 50
+                for line in l1_text:
+                    string_rendered = font.render(line, 1, pygame.Color('white'))
+                    intro_rect = string_rendered.get_rect()
+                    text_coord += 270
+                    intro_rect.top = text_coord
+                    intro_rect.x = 55
+                    text_coord += intro_rect.height
+                    screen.blit(string_rendered, intro_rect)
+            else:
+                pygame.draw.polygon(screen, pygame.Color('black'), [(50, 310), (50, 360), (250, 360), (250, 310)])
+                font = pygame.font.Font(None, 30)
+                text_coord = 50
+                for line in l1_text:
+                    string_rendered = font.render(line, 1, pygame.Color('white'))
+                    intro_rect = string_rendered.get_rect()
+                    text_coord += 270
+                    intro_rect.top = text_coord
+                    intro_rect.x = 55
+                    text_coord += intro_rect.height
+                    screen.blit(string_rendered, intro_rect)
 
-        x1_3 = args[3][0]
-        x2_3 = args[3][1]
-        y1_3 = args[3][2]
-        y2_3 = args[3][3]
-        if x1_3 <= a <= x2_3 and y1_3 <= b <= y2_3:
-            flag2 = 3
-            pygame.draw.polygon(screen, pygame.Color('red'), [(50, 370), (50, 420), (250, 420), (250, 370)])
-            font = pygame.font.Font(None, 30)
-            text_coord = 50
-            for line in l2_text:
-                string_rendered = font.render(line, 1, pygame.Color('white'))
-                intro_rect = string_rendered.get_rect()
-                text_coord += 330
-                intro_rect.top = text_coord
-                intro_rect.x = 55
-                text_coord += intro_rect.height
-                screen.blit(string_rendered, intro_rect)
-        else:
-            pygame.draw.polygon(screen, pygame.Color('black'), [(50, 370), (50, 420), (250, 420), (250, 370)])
-            font = pygame.font.Font(None, 30)
-            text_coord = 50
-            for line in l2_text:
-                string_rendered = font.render(line, 1, pygame.Color('white'))
-                intro_rect = string_rendered.get_rect()
-                text_coord += 330
-                intro_rect.top = text_coord
-                intro_rect.x = 55
-                text_coord += intro_rect.height
-                screen.blit(string_rendered, intro_rect)
-
-        x1_4 = args[4][0]
-        x2_4 = args[4][1]
-        y1_4 = args[4][2]
-        y2_4 = args[4][3]
-        if x1_4 <= a <= x2_4 and y1_4 <= b <= y2_4:
-            flag2 = 4
-            pygame.draw.polygon(screen, pygame.Color('red'), [(50, 430), (50, 480), (250, 480), (250, 430)])
-            font = pygame.font.Font(None, 30)
-            text_coord = 50
-            for line in l3_text:
-                string_rendered = font.render(line, 1, pygame.Color('white'))
-                intro_rect = string_rendered.get_rect()
-                text_coord += 390
-                intro_rect.top = text_coord
-                intro_rect.x = 55
-                text_coord += intro_rect.height
-                screen.blit(string_rendered, intro_rect)
-        else:
-            pygame.draw.polygon(screen, pygame.Color('black'), [(50, 430), (50, 480), (250, 480), (250, 430)])
-            font = pygame.font.Font(None, 30)
-            text_coord = 50
-            for line in l3_text:
-                string_rendered = font.render(line, 1, pygame.Color('white'))
-                intro_rect = string_rendered.get_rect()
-                text_coord += 390
-                intro_rect.top = text_coord
-                intro_rect.x = 55
-                text_coord += intro_rect.height
-                screen.blit(string_rendered, intro_rect)
+        if level >= 2:
+            x1_3 = args[3][0]
+            x2_3 = args[3][1]
+            y1_3 = args[3][2]
+            y2_3 = args[3][3]
+            if x1_3 <= a <= x2_3 and y1_3 <= b <= y2_3:
+                flag2 = 3
+                pygame.draw.polygon(screen, pygame.Color('red'), [(50, 370), (50, 420), (250, 420), (250, 370)])
+                font = pygame.font.Font(None, 30)
+                text_coord = 50
+                for line in l2_text:
+                    string_rendered = font.render(line, 1, pygame.Color('white'))
+                    intro_rect = string_rendered.get_rect()
+                    text_coord += 330
+                    intro_rect.top = text_coord
+                    intro_rect.x = 55
+                    text_coord += intro_rect.height
+                    screen.blit(string_rendered, intro_rect)
+            else:
+                pygame.draw.polygon(screen, pygame.Color('black'), [(50, 370), (50, 420), (250, 420), (250, 370)])
+                font = pygame.font.Font(None, 30)
+                text_coord = 50
+                for line in l2_text:
+                    string_rendered = font.render(line, 1, pygame.Color('white'))
+                    intro_rect = string_rendered.get_rect()
+                    text_coord += 330
+                    intro_rect.top = text_coord
+                    intro_rect.x = 55
+                    text_coord += intro_rect.height
+                    screen.blit(string_rendered, intro_rect)
+        if level >= 3:
+            x1_4 = args[4][0]
+            x2_4 = args[4][1]
+            y1_4 = args[4][2]
+            y2_4 = args[4][3]
+            if x1_4 <= a <= x2_4 and y1_4 <= b <= y2_4:
+                flag2 = 4
+                pygame.draw.polygon(screen, pygame.Color('red'), [(50, 430), (50, 480), (250, 480), (250, 430)])
+                font = pygame.font.Font(None, 30)
+                text_coord = 50
+                for line in l3_text:
+                    string_rendered = font.render(line, 1, pygame.Color('white'))
+                    intro_rect = string_rendered.get_rect()
+                    text_coord += 390
+                    intro_rect.top = text_coord
+                    intro_rect.x = 55
+                    text_coord += intro_rect.height
+                    screen.blit(string_rendered, intro_rect)
+            else:
+                pygame.draw.polygon(screen, pygame.Color('black'), [(50, 430), (50, 480), (250, 480), (250, 430)])
+                font = pygame.font.Font(None, 30)
+                text_coord = 50
+                for line in l3_text:
+                    string_rendered = font.render(line, 1, pygame.Color('white'))
+                    intro_rect = string_rendered.get_rect()
+                    text_coord += 390
+                    intro_rect.top = text_coord
+                    intro_rect.x = 55
+                    text_coord += intro_rect.height
+                    screen.blit(string_rendered, intro_rect)
 
     while True:
         for event in pygame.event.get():
