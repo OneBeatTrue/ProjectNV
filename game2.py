@@ -304,7 +304,8 @@ def start_screen():
                 options()
                 return
             if event.type == pygame.MOUSEBUTTONDOWN and flag == 2:
-                pass
+                load()
+                return
         pygame.display.flip()
         clock.tick(FPS)
 
@@ -448,35 +449,35 @@ def options():
                 text_coord += intro_rect.height
                 screen.blit(string_rendered, intro_rect)
 
-            x1_3 = args[3][0]
-            x2_3 = args[3][1]
-            y1_3 = args[3][2]
-            y2_3 = args[3][3]
-            if x1_3 <= a <= x2_3 and y1_3 <= b <= y2_3:
-                flag1 = 3
-                pygame.draw.polygon(screen, pygame.Color('red'), [(50, 370), (50, 420), (250, 420), (250, 370)])
-                font = pygame.font.Font(None, 30)
-                text_coord = 50
-                for line in blood_text:
-                    string_rendered = font.render(line, 1, pygame.Color('white'))
-                    intro_rect = string_rendered.get_rect()
-                    text_coord += 330
-                    intro_rect.top = text_coord
-                    intro_rect.x = 55
-                    text_coord += intro_rect.height
-                    screen.blit(string_rendered, intro_rect)
-            else:
-                pygame.draw.polygon(screen, pygame.Color('black'), [(50, 370), (50, 420), (250, 420), (250, 370)])
-                font = pygame.font.Font(None, 30)
-                text_coord = 50
-                for line in blood_text:
-                    string_rendered = font.render(line, 1, pygame.Color('white'))
-                    intro_rect = string_rendered.get_rect()
-                    text_coord += 330
-                    intro_rect.top = text_coord
-                    intro_rect.x = 55
-                    text_coord += intro_rect.height
-                    screen.blit(string_rendered, intro_rect)
+        x1_3 = args[3][0]
+        x2_3 = args[3][1]
+        y1_3 = args[3][2]
+        y2_3 = args[3][3]
+        if x1_3 <= a <= x2_3 and y1_3 <= b <= y2_3:
+            flag1 = 3
+            pygame.draw.polygon(screen, pygame.Color('red'), [(50, 370), (50, 420), (250, 420), (250, 370)])
+            font = pygame.font.Font(None, 30)
+            text_coord = 50
+            for line in blood_text:
+                string_rendered = font.render(line, 1, pygame.Color('white'))
+                intro_rect = string_rendered.get_rect()
+                text_coord += 330
+                intro_rect.top = text_coord
+                intro_rect.x = 55
+                text_coord += intro_rect.height
+                screen.blit(string_rendered, intro_rect)
+        else:
+            pygame.draw.polygon(screen, pygame.Color('black'), [(50, 370), (50, 420), (250, 420), (250, 370)])
+            font = pygame.font.Font(None, 30)
+            text_coord = 50
+            for line in blood_text:
+                string_rendered = font.render(line, 1, pygame.Color('white'))
+                intro_rect = string_rendered.get_rect()
+                text_coord += 330
+                intro_rect.top = text_coord
+                intro_rect.x = 55
+                text_coord += intro_rect.height
+                screen.blit(string_rendered, intro_rect)
 
     while True:
         for event in pygame.event.get():
@@ -505,6 +506,212 @@ def options():
                 else:
                     blood = 0
                 update(event.pos, [50, 250, 250, 300], [50, 250, 310, 360], [50, 250, 370, 420])
+
+        pygame.display.flip()
+        clock.tick(FPS)
+
+flag2 = 0
+
+def load():
+    global flag2
+    load_text = ["<.B.A.C.K."]
+    l1_text = ["L.E.V.E.L. 1."]
+    l2_text = ["L.E.V.E.L. 2."]
+    l3_text = ["L.E.V.E.L. 3."]
+
+
+
+    fon = pygame.transform.scale(load_image('fon2.jpg'), (WIDTH, HEIGHT))
+    screen.blit(fon, (0, 0))
+
+    pygame.draw.polygon(screen, pygame.Color('black'), [(50, 250), (50, 300), (250, 300), (250, 250)])
+    font = pygame.font.Font(None, 30)
+    text_coord = 50
+    for line in load_text:
+        string_rendered = font.render(line, 1, pygame.Color('white'))
+        intro_rect = string_rendered.get_rect()
+        text_coord += 210
+        intro_rect.top = text_coord
+        intro_rect.x = 55
+        text_coord += intro_rect.height
+        screen.blit(string_rendered, intro_rect)
+
+    pygame.draw.polygon(screen, pygame.Color('black'), [(50, 310), (50, 360), (250, 360), (250, 310)])
+    font = pygame.font.Font(None, 30)
+    text_coord = 50
+    for line in l1_text:
+        string_rendered = font.render(line, 1, pygame.Color('white'))
+        intro_rect = string_rendered.get_rect()
+        text_coord += 270
+        intro_rect.top = text_coord
+        intro_rect.x = 55
+        text_coord += intro_rect.height
+        screen.blit(string_rendered, intro_rect)
+
+    pygame.draw.polygon(screen, pygame.Color('black'), [(50, 370), (50, 420), (250, 420), (250, 370)])
+    font = pygame.font.Font(None, 30)
+    text_coord = 50
+    for line in l2_text:
+        string_rendered = font.render(line, 1, pygame.Color('white'))
+        intro_rect = string_rendered.get_rect()
+        text_coord += 330
+        intro_rect.top = text_coord
+        intro_rect.x = 55
+        text_coord += intro_rect.height
+        screen.blit(string_rendered, intro_rect)
+
+    pygame.draw.polygon(screen, pygame.Color('black'), [(50, 430), (50, 480), (250, 480), (250, 430)])
+    font = pygame.font.Font(None, 30)
+    text_coord = 50
+    for line in l3_text:
+        string_rendered = font.render(line, 1, pygame.Color('white'))
+        intro_rect = string_rendered.get_rect()
+        text_coord += 390
+        intro_rect.top = text_coord
+        intro_rect.x = 55
+        text_coord += intro_rect.height
+        screen.blit(string_rendered, intro_rect)
+
+
+
+    def update(*args):
+        global flag2
+
+        flag2 = 0
+        a = args[0][0]
+        b = args[0][1]
+        x1_1 = args[1][0]
+        x2_1 = args[1][1]
+        y1_1 = args[1][2]
+        y2_1 = args[1][3]
+
+        if x1_1 <= a <= x2_1 and y1_1 <= b <= y2_1:
+            flag2 = 1
+            pygame.draw.polygon(screen, pygame.Color('red'), [(50, 250), (50, 300), (250, 300), (250, 250)])
+            font = pygame.font.Font(None, 30)
+            text_coord = 50
+            for line in load_text:
+                string_rendered = font.render(line, 1, pygame.Color('white'))
+                intro_rect = string_rendered.get_rect()
+                text_coord += 210
+                intro_rect.top = text_coord
+                intro_rect.x = 55
+                text_coord += intro_rect.height
+                screen.blit(string_rendered, intro_rect)
+        else:
+            pygame.draw.polygon(screen, pygame.Color('black'), [(50, 250), (50, 300), (250, 300), (250, 250)])
+            font = pygame.font.Font(None, 30)
+            text_coord = 50
+            for line in load_text:
+                string_rendered = font.render(line, 1, pygame.Color('white'))
+                intro_rect = string_rendered.get_rect()
+                text_coord += 210
+                intro_rect.top = text_coord
+                intro_rect.x = 55
+                text_coord += intro_rect.height
+                screen.blit(string_rendered, intro_rect)
+
+        x1_2 = args[2][0]
+        x2_2 = args[2][1]
+        y1_2 = args[2][2]
+        y2_2 = args[2][3]
+        if x1_2 <= a <= x2_2 and y1_2 <= b <= y2_2:
+            flag2 = 2
+            pygame.draw.polygon(screen, pygame.Color('red'), [(50, 310), (50, 360), (250, 360), (250, 310)])
+            font = pygame.font.Font(None, 30)
+            text_coord = 50
+            for line in l1_text:
+                string_rendered = font.render(line, 1, pygame.Color('white'))
+                intro_rect = string_rendered.get_rect()
+                text_coord += 270
+                intro_rect.top = text_coord
+                intro_rect.x = 55
+                text_coord += intro_rect.height
+                screen.blit(string_rendered, intro_rect)
+        else:
+            pygame.draw.polygon(screen, pygame.Color('black'), [(50, 310), (50, 360), (250, 360), (250, 310)])
+            font = pygame.font.Font(None, 30)
+            text_coord = 50
+            for line in l1_text:
+                string_rendered = font.render(line, 1, pygame.Color('white'))
+                intro_rect = string_rendered.get_rect()
+                text_coord += 270
+                intro_rect.top = text_coord
+                intro_rect.x = 55
+                text_coord += intro_rect.height
+                screen.blit(string_rendered, intro_rect)
+
+        x1_3 = args[3][0]
+        x2_3 = args[3][1]
+        y1_3 = args[3][2]
+        y2_3 = args[3][3]
+        if x1_3 <= a <= x2_3 and y1_3 <= b <= y2_3:
+            flag2 = 3
+            pygame.draw.polygon(screen, pygame.Color('red'), [(50, 370), (50, 420), (250, 420), (250, 370)])
+            font = pygame.font.Font(None, 30)
+            text_coord = 50
+            for line in l2_text:
+                string_rendered = font.render(line, 1, pygame.Color('white'))
+                intro_rect = string_rendered.get_rect()
+                text_coord += 330
+                intro_rect.top = text_coord
+                intro_rect.x = 55
+                text_coord += intro_rect.height
+                screen.blit(string_rendered, intro_rect)
+        else:
+            pygame.draw.polygon(screen, pygame.Color('black'), [(50, 370), (50, 420), (250, 420), (250, 370)])
+            font = pygame.font.Font(None, 30)
+            text_coord = 50
+            for line in l2_text:
+                string_rendered = font.render(line, 1, pygame.Color('white'))
+                intro_rect = string_rendered.get_rect()
+                text_coord += 330
+                intro_rect.top = text_coord
+                intro_rect.x = 55
+                text_coord += intro_rect.height
+                screen.blit(string_rendered, intro_rect)
+
+        x1_4 = args[4][0]
+        x2_4 = args[4][1]
+        y1_4 = args[4][2]
+        y2_4 = args[4][3]
+        if x1_4 <= a <= x2_4 and y1_4 <= b <= y2_4:
+            flag2 = 4
+            pygame.draw.polygon(screen, pygame.Color('red'), [(50, 430), (50, 480), (250, 480), (250, 430)])
+            font = pygame.font.Font(None, 30)
+            text_coord = 50
+            for line in l3_text:
+                string_rendered = font.render(line, 1, pygame.Color('white'))
+                intro_rect = string_rendered.get_rect()
+                text_coord += 390
+                intro_rect.top = text_coord
+                intro_rect.x = 55
+                text_coord += intro_rect.height
+                screen.blit(string_rendered, intro_rect)
+        else:
+            pygame.draw.polygon(screen, pygame.Color('black'), [(50, 430), (50, 480), (250, 480), (250, 430)])
+            font = pygame.font.Font(None, 30)
+            text_coord = 50
+            for line in l3_text:
+                string_rendered = font.render(line, 1, pygame.Color('white'))
+                intro_rect = string_rendered.get_rect()
+                text_coord += 390
+                intro_rect.top = text_coord
+                intro_rect.x = 55
+                text_coord += intro_rect.height
+                screen.blit(string_rendered, intro_rect)
+
+    while True:
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                terminate()
+            if event.type == pygame.MOUSEMOTION:
+                update(event.pos, [50, 250, 250, 300], [50, 250, 310, 360], [50, 250, 370, 420], [50, 250, 430, 480])
+                x, y = event.pos
+                arrow.update(x, y)
+            if event.type == pygame.MOUSEBUTTONDOWN and flag2 == 1:
+                start_screen()
+                return
 
         pygame.display.flip()
         clock.tick(FPS)
