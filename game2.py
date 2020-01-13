@@ -511,7 +511,7 @@ def options():
         clock.tick(FPS)
 
 flag2 = 0
-level = 2
+level = 3
 
 
 def load():
@@ -552,6 +552,7 @@ def load():
             intro_rect.x = 55
             text_coord += intro_rect.height
             screen.blit(string_rendered, intro_rect)
+
     if level >= 2:
         pygame.draw.polygon(screen, pygame.Color('black'), [(50, 370), (50, 420), (250, 420), (250, 370)])
         font = pygame.font.Font(None, 30)
@@ -719,6 +720,16 @@ def load():
             if event.type == pygame.MOUSEBUTTONDOWN and flag2 == 1:
                 start_screen()
                 return
+            if event.type == pygame.MOUSEBUTTONDOWN and flag2 == 2:
+                clean()
+                return
+            if event.type == pygame.MOUSEBUTTONDOWN and flag2 == 3:
+                clean()
+                return
+            if event.type == pygame.MOUSEBUTTONDOWN and flag2 == 4:
+                clean()
+                return
+
 
         pygame.display.flip()
         clock.tick(FPS)
