@@ -3,8 +3,8 @@ from os import path
 
 pygame.init()
 size = WIDTH, HEIGHT = 1600, 900
-# screen = pygame.display.set_mode(size)
-screen = pygame.display.set_mode(size, pygame.FULLSCREEN)
+screen = pygame.display.set_mode(size)
+# screen = pygame.display.set_mode(size, pygame.FULLSCREEN)
 # pygame.mouse.set_visible(False)
 screen.fill(pygame.Color('black'))
 
@@ -78,7 +78,7 @@ def generate_level(level):
     new_player = Player(xp, yp)
     pygame.mixer.music.stop()
     pygame.mixer.music.load(tracklist[now_level])
-    pygame.mixer.music.set_volume(0.4)
+    # pygame.mixer.music.set_volume(0.4)
     pygame.mixer.music.play(loops=-1)
     # вернем игрока, а также размер поля в клетках
     return new_player, enemies, x, y, button, doors, False
@@ -103,7 +103,7 @@ def start_screen():
     screen.blit(fon, (0, 0))
     pygame.mixer.music.stop()
     pygame.mixer.music.load(tracklist[3])
-    pygame.mixer.music.set_volume(0.7)
+    # pygame.mixer.music.set_volume(0.7)
     pygame.mixer.music.play(loops=-1)
     # fon_sound = pygame.mixer.Sound(path.join('sounds', tracklist[3]))
     # fon_sound.set_volume(0.2)
@@ -291,7 +291,7 @@ def start_screen():
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 terminate()
-            if event.type == pygame.MOUSEMOTION34:
+            if event.type == pygame.MOUSEMOTION:
                 update(event.pos, [50, 250, 250, 300], [50, 250, 310, 360], [50, 250, 370, 420], [50, 250, 430, 480])
                 x, y = event.pos
                 arrow.update(x, y)
@@ -302,12 +302,25 @@ def start_screen():
                 terminate()
             if event.type == pygame.MOUSEBUTTONDOWN and flag == 3:
                 options()
+            if event.type == pygame.MOUSEBUTTONDOWN and flag == 2:
+                pass
         pygame.display.flip()
         clock.tick(FPS)
 
 
+f = 0
+
+
 def options():
     opt_text = ["<.B.A.C.K."]
+
+    global f
+
+    if f == 1:
+        volume_text = ["V.O.L.U.M.E. O.F.F."]
+    else:
+        volume_text = ["V.O.L.U.M.E. O.N."]
+
     fon = pygame.transform.scale(load_image('fon2.jpg'), (WIDTH, HEIGHT))
     screen.blit(fon, (0, 0))
 
@@ -323,8 +336,28 @@ def options():
         text_coord += intro_rect.height
         screen.blit(string_rendered, intro_rect)
 
+    pygame.draw.polygon(screen, pygame.Color('black'), [(50, 310), (50, 360), (250, 360), (250, 310)])
+    font = pygame.font.Font(None, 30)
+    text_coord = 50
+    for line in volume_text:
+        string_rendered = font.render(line, 1, pygame.Color('white'))
+        intro_rect = string_rendered.get_rect()
+        text_coord += 270
+        intro_rect.top = text_coord
+        intro_rect.x = 55
+        text_coord += intro_rect.height
+        screen.blit(string_rendered, intro_rect)
+
     def update(*args):
         global flag1
+        global f
+        global volume_text
+
+        if f == 1:
+            volume_text = ["V.O.L.U.M.E. O.F.F."]
+        else:
+            volume_text = ["V.O.L.U.M.E. O.N."]
+
         flag1 = 0
         a = args[0][0]
         b = args[0][1]
@@ -359,17 +392,56 @@ def options():
                 text_coord += intro_rect.height
                 screen.blit(string_rendered, intro_rect)
 
+        x1_2 = args[2][0]
+        x2_2 = args[2][1]
+        y1_2 = args[2][2]
+        y2_2 = args[2][3]
+        if x1_2 <= a <= x2_2 and y1_2 <= b <= y2_2:
+            flag1 = 2
+            pygame.draw.polygon(screen, pygame.Color('red'), [(50, 310), (50, 360), (250, 360), (250, 310)])
+            font = pygame.font.Font(None, 30)
+            text_coord = 50
+            for line in volume_text:
+                string_rendered = font.render(line, 1, pygame.Color('white'))
+                intro_rect = string_rendered.get_rect()
+                text_coord += 270
+                intro_rect.top = text_coord
+                intro_rect.x = 55
+                text_coord += intro_rect.height
+                screen.blit(string_rendered, intro_rect)
+        else:
+            pygame.draw.polygon(screen, pygame.Color('black'), [(50, 310), (50, 360), (250, 360), (250, 310)])
+            font = pygame.font.Font(None, 30)
+            text_coord = 50
+            for line in volume_text:
+                string_rendered = font.render(line, 1, pygame.Color('white'))
+                intro_rect = string_rendered.get_rect()
+                text_coord += 270
+                intro_rect.top = text_coord
+                intro_rect.x = 55
+                text_coord += intro_rect.height
+                screen.blit(string_rendered, intro_rect)
+
     while True:
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 terminate()
             if event.type == pygame.MOUSEMOTION:
-                update(event.pos, [50, 250, 250, 300], [50, 250, 310, 360], [50, 250, 370, 420], [50, 250, 430, 480])
+                update(event.pos, [50, 250, 250, 300], [50, 250, 310, 360])
                 x, y = event.pos
                 arrow.update(x, y)
             if event.type == pygame.MOUSEBUTTONDOWN and flag1 == 1:
-                start_screen()
+                # start_screen()
                 return
+            if event.type == pygame.MOUSEBUTTONDOWN and flag1 == 2:
+                if f == 0:
+                    vol = 0.0
+                    f = 1
+                else:
+                    vol = 0.5
+                    f = 0
+                pygame.mixer.music.set_volume(abs(0.0 - vol))
+
         pygame.display.flip()
         clock.tick(FPS)
 
@@ -653,6 +725,7 @@ door_image_opened = load_image('door2.png')
 arrow_image = load_image("arrow2.png")
 tile_width = tile_height = 50
 levels_list = ['level1.txt', 'level2.txt', 'level3.txt']
+levels = 3
 shoot_sound = pygame.mixer.Sound(path.join('sounds', 'shoot.wav'))
 death_sound = pygame.mixer.Sound(path.join('sounds', 'death.wav'))
 # step_sound = pygame.mixer.Sound(path.join('sounds', 'step.wav'))
@@ -736,11 +809,6 @@ while running:
     pygame.display.flip()
     clock.tick(FPS)
 pygame.quit()
-
-
-
-
-
 
 
 
