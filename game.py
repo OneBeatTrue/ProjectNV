@@ -2,8 +2,8 @@ import pygame, sys, os, random
 from os import path
 
 pygame.init()
-# size = WIDTH, HEIGHT = 1600, 900
-size = WIDTH, HEIGHT = 1280, 1024
+size = WIDTH, HEIGHT = 1600, 900
+# size = WIDTH, HEIGHT = 1280, 1024
 # screen = pygame.display.set_mode(size)
 screen = pygame.display.set_mode(size, pygame.FULLSCREEN)
 # pygame.mouse.set_visible(False)
@@ -984,6 +984,124 @@ def load():
         pygame.display.flip()
         clock.tick(FPS)
 
+flag4 = 0
+
+
+def contin():
+    global flag4
+    next_text = ["N.E.X.T.>"]
+    exit_text = ["M.E.N.U."]
+
+    fon = pygame.transform.scale(load_image('fon3.jpg'), (WIDTH, HEIGHT))
+    screen.blit(fon, (0, 0))
+
+    pygame.draw.polygon(screen, pygame.Color('black'), [(50, 250), (50, 300), (250, 300), (250, 250)])
+    font = pygame.font.Font(None, 30)
+    text_coord = 50
+    for line in next_text:
+        string_rendered = font.render(line, 1, pygame.Color('white'))
+        intro_rect = string_rendered.get_rect()
+        text_coord += 210
+        intro_rect.top = text_coord
+        intro_rect.x = 55
+        text_coord += intro_rect.height
+        screen.blit(string_rendered, intro_rect)
+
+    pygame.draw.polygon(screen, pygame.Color('black'), [(50, 310), (50, 360), (250, 360), (250, 310)])
+    font = pygame.font.Font(None, 30)
+    text_coord = 50
+    for line in exit_text:
+        string_rendered = font.render(line, 1, pygame.Color('white'))
+        intro_rect = string_rendered.get_rect()
+        text_coord += 270
+        intro_rect.top = text_coord
+        intro_rect.x = 55
+        text_coord += intro_rect.height
+        screen.blit(string_rendered, intro_rect)
+
+    def update(*args):
+        global flag4
+
+        a = args[0][0]
+        b = args[0][1]
+        x1_1 = args[1][0]
+        x2_1 = args[1][1]
+        y1_1 = args[1][2]
+        y2_1 = args[1][3]
+
+        if x1_1 <= a <= x2_1 and y1_1 <= b <= y2_1:
+            flag4 = 1
+            pygame.draw.polygon(screen, pygame.Color('red'), [(50, 250), (50, 300), (250, 300), (250, 250)])
+            font = pygame.font.Font(None, 30)
+            text_coord = 50
+            for line in next_text:
+                string_rendered = font.render(line, 1, pygame.Color('white'))
+                intro_rect = string_rendered.get_rect()
+                text_coord += 210
+                intro_rect.top = text_coord
+                intro_rect.x = 55
+                text_coord += intro_rect.height
+                screen.blit(string_rendered, intro_rect)
+        else:
+            pygame.draw.polygon(screen, pygame.Color('black'), [(50, 250), (50, 300), (250, 300), (250, 250)])
+            font = pygame.font.Font(None, 30)
+            text_coord = 50
+            for line in next_text:
+                string_rendered = font.render(line, 1, pygame.Color('white'))
+                intro_rect = string_rendered.get_rect()
+                text_coord += 210
+                intro_rect.top = text_coord
+                intro_rect.x = 55
+                text_coord += intro_rect.height
+                screen.blit(string_rendered, intro_rect)
+
+        x1_2 = args[2][0]
+        x2_2 = args[2][1]
+        y1_2 = args[2][2]
+        y2_2 = args[2][3]
+        if x1_2 <= a <= x2_2 and y1_2 <= b <= y2_2:
+            flag4 = 2
+            pygame.draw.polygon(screen, pygame.Color('red'), [(50, 310), (50, 360), (250, 360), (250, 310)])
+            font = pygame.font.Font(None, 30)
+            text_coord = 50
+            for line in exit_text:
+                string_rendered = font.render(line, 1, pygame.Color('white'))
+                intro_rect = string_rendered.get_rect()
+                text_coord += 270
+                intro_rect.top = text_coord
+                intro_rect.x = 55
+                text_coord += intro_rect.height
+                screen.blit(string_rendered, intro_rect)
+        else:
+            pygame.draw.polygon(screen, pygame.Color('black'), [(50, 310), (50, 360), (250, 360), (250, 310)])
+            font = pygame.font.Font(None, 30)
+            text_coord = 50
+            for line in exit_text:
+                string_rendered = font.render(line, 1, pygame.Color('white'))
+                intro_rect = string_rendered.get_rect()
+                text_coord += 270
+                intro_rect.top = text_coord
+                intro_rect.x = 55
+                text_coord += intro_rect.height
+                screen.blit(string_rendered, intro_rect)
+
+    while True:
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                terminate()
+            if event.type == pygame.MOUSEMOTION:
+                update(event.pos, [50, 250, 250, 300], [50, 250, 310, 360])
+                x, y = event.pos
+                arrow.update(x, y)
+            if event.type == pygame.MOUSEBUTTONDOWN and flag4 == 1:
+                return
+
+            if event.type == pygame.MOUSEBUTTONDOWN and flag4 == 2:
+                start_screen()
+                return
+
+        pygame.display.flip()
+        clock.tick(FPS)
 
 def terminate():
     pygame.quit()
@@ -1212,6 +1330,7 @@ class Player(pygame.sprite.Sprite):
                     f.write(str(now_level))
                 start_screen()
             else:
+                contin()
                 clean()
                 pygame.display.flip()
                 # print(now_level)
