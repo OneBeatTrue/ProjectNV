@@ -10,12 +10,15 @@ screen = pygame.display.set_mode(size, pygame.FULLSCREEN)
 screen.fill(pygame.Color('black'))
 
 
-def create_particles(position):
+def create_particles(position, sprite=None):
     # количество создаваемых частиц
     particle_count = 100
     # возможные скорости
-    for _ in range(particle_count):
-        Particle(position, random.choice(range(-4, 4)), random.choice(range(-10, 2)))
+    for i in range(particle_count):
+        if i == particle_count - 1 and sprite is not None:
+            Particle(position, random.choice(range(-4, 4)), random.choice(range(-10, 2)), sprite)
+        else:
+            Particle(position, random.choice(range(-4, 4)), random.choice(range(-10, 2)))
 
 
 def load_image(name, colorkey=None):
@@ -42,6 +45,7 @@ def load_level(filename):
 
 
 def generate_level(level):
+    global player_image_static, player_image_jumping, player_image_climbing
     new_player, x, y = None, None, None
     xp = 0
     yp = 0
@@ -76,6 +80,9 @@ def generate_level(level):
                 yp = y
     enemies = [Enemy(i[0], i[1], i[2]) for i in enemies]
     new_player = Player(xp, yp)
+    player_image_static = load_image('hero.png', -1)
+    player_image_jumping = load_image('herojump.png', -1)
+    player_image_climbing = load_image('heroback.png', -1)
     pygame.mixer.music.stop()
     pygame.mixer.music.load(tracklist[now_level])
     # pygame.mixer.music.set_volume(0.4)
@@ -984,6 +991,7 @@ def load():
         pygame.display.flip()
         clock.tick(FPS)
 
+
 flag4 = 0
 
 
@@ -1103,6 +1111,7 @@ def contin():
         pygame.display.flip()
         clock.tick(FPS)
 
+
 def terminate():
     pygame.quit()
     sys.exit()
@@ -1178,21 +1187,27 @@ class Bullet(pygame.sprite.Sprite):
         pygame.sprite.Sprite.__init__(self)
         self.image = pygame.transform.scale(bullet_image, (20, 10))
         self.rect = self.image.get_rect()
+        self.disappear = False
         if definition:
             self.rect.centerx = x + 10
-            self.speed = 25
+            self.speed = 30
         else:
             self.rect.centerx = x - 10
-            self.speed = -25
+            self.speed = -30
             self.image = pygame.transform.flip(self.image, True, False)
         self.rect.centery = y - 15
-
 
     def update(self):
         self.rect.x += self.speed
         # убить, если он заходит за верхнюю часть экрана
+        if self.disappear:
+            self.kill()
         if pygame.sprite.spritecollideany(self, walls_group):
             self.kill()
+        if pygame.sprite.spritecollideany(self, player_group):
+            self.disappear = True
+        if pygame.sprite.spritecollideany(self, enemies_group):
+            self.disappear = True
 
 
 class Particle(pygame.sprite.Sprite):
@@ -1201,7 +1216,7 @@ class Particle(pygame.sprite.Sprite):
     for scale in (1, 2, 3):
         fire.append(pygame.transform.scale(fire[0], (scale, scale)))
 
-    def __init__(self, pos, dx, dy):
+    def __init__(self, pos, dx, dy, sprite=None):
         super().__init__(blood_group, all_sprites)
         self.image = random.choice(self.fire)
         self.rect = self.image.get_rect()
@@ -1209,8 +1224,8 @@ class Particle(pygame.sprite.Sprite):
         self.velocity = [dx, dy]
         # и свои координаты
         self.rect.x, self.rect.y = pos
-        # гравитация будет одинаковой (значение константы)
         self.g = 1
+        self.sprite = sprite
 
     def update(self):
         # применяем гравитационный эффект:
@@ -1222,6 +1237,9 @@ class Particle(pygame.sprite.Sprite):
         # убиваем, если частица ушла за экран
         if pygame.sprite.spritecollideany(self, walls_group):
             self.kill()
+            if self.sprite is not None:
+                # self.sprite.kill()
+                start_screen()
 
 
 class Area(pygame.sprite.Sprite):
@@ -1251,10 +1269,10 @@ class Enemy(pygame.sprite.Sprite):
 
     def update(self):
         if pygame.sprite.spritecollideany(self, bullets_group):
-            self.kill()
             death_sound.play()
             if blood == 0:
                 create_particles((self.rect.centerx, self.rect.centery))
+            self.kill()
         if pygame.sprite.spritecollideany(self, walls_group):
             if pygame.sprite.spritecollide(self, walls_group, False)[0].rect.y <= self.rect.y:
                 while pygame.sprite.spritecollideany(self, walls_group):
@@ -1280,7 +1298,7 @@ class Enemy(pygame.sprite.Sprite):
 class Player(pygame.sprite.Sprite):
     def __init__(self, pos_x, pos_y):
         super().__init__(player_group, all_sprites)
-        self.image = pygame.transform.scale(player_image_static, (40, 80))
+        self.image = self.image = pygame.transform.scale(player_image_static, (40, 80))
         self.rect = self.image.get_rect().move(tile_width * pos_x + 15, tile_height * pos_y + 5)
         self.g = 1
         self.ground = False
@@ -1328,14 +1346,29 @@ class Player(pygame.sprite.Sprite):
                 now_level = 0
                 with open("data/now_level.txt", 'w', encoding='utf-8') as f:
                     f.write(str(now_level))
-                start_screen()
+                # start_screen()
             else:
-                contin()
                 clean()
                 pygame.display.flip()
                 # print(now_level)
                 with open("data/now_level.txt", 'w', encoding='utf-8') as f:
                     f.write(str(now_level))
+            contin()
+        if pygame.sprite.spritecollideany(self, bullets_group) or pygame.sprite.spritecollideany(self, enemies_group):
+            global player_image_static, player_image_jumping, player_image_climbing
+            herodeath_sound.play()
+            player_image_static = pygame.transform.scale(area_image, (40, 80))
+            player_image_jumping = pygame.transform.scale(area_image, (40, 80))
+            player_image_climbing = pygame.transform.scale(area_image, (40, 80))
+            self.kill()
+            if blood == 0:
+                create_particles((self.rect.centerx, self.rect.centery), self)
+                # print(1)
+            else:
+            # dop = self.sprite
+            # if dop in player_group:
+                start_screen()
+
 
             # fon_sound.pause()
             # fon_sound = pygame.mixer.Sound(path.join('sounds', tracklist[now_level]))
@@ -1345,7 +1378,10 @@ class Player(pygame.sprite.Sprite):
             # terminate()
 
     def shoot(self):
-        bullet = Bullet(self.rect.centerx, self.rect.centery, self.definition)
+        if self.definition:
+            bullet = Bullet(self.rect.centerx + 30, self.rect.centery, self.definition)
+        else:
+            bullet = Bullet(self.rect.centerx - 30, self.rect.centery, self.definition)
         all_sprites.add(bullet)
         bullets_group.add(bullet)
         shoot_sound.play()
@@ -1355,6 +1391,7 @@ class Player(pygame.sprite.Sprite):
             self.image = pygame.transform.scale(player_image_static, (40, 80))
         else:
             self.image = pygame.transform.scale(player_image_jumping, (40, 80))
+            self.check_image = False
         if pygame.sprite.spritecollideany(self, stairs_group):
             self.image = pygame.transform.scale(player_image_climbing, (40, 80))
         if not self.definition:
@@ -1418,6 +1455,7 @@ tile_width = tile_height = 50
 levels_list = ['level1.txt', 'level4.txt', 'level3.txt']
 shoot_sound = pygame.mixer.Sound(path.join('sounds', 'shoot.wav'))
 death_sound = pygame.mixer.Sound(path.join('sounds', 'death.wav'))
+herodeath_sound = pygame.mixer.Sound(path.join('sounds', 'herodeath.wav'))
 # step_sound = pygame.mixer.Sound(path.join('sounds', 'step.wav'))
 tracklist = ['sounds/' + i for i in ['level1.mp3', 'level2.mp3', 'level3.mp3', 'main_theme.wav']]
 pygame.mixer.music.load(tracklist[3])
@@ -1449,6 +1487,7 @@ player, enemies, level_x, level_y, button, doors, next_level = None, None, None,
 clean()
 running = True
 while running:
+    bullets_group.update()
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             running = False
@@ -1496,7 +1535,7 @@ while running:
     player.gravity()
     player_group.update(key)
     button_group.update()
-    bullets_group.update()
+
     enemies_group.update()
     blood_group.update()
     # изменяем ракурс камеры
