@@ -120,6 +120,7 @@ def start_screen():
     # pygame.draw.polygon(screen, pygame.Color('gray'), [(50, 310), (50, 360), (250, 360), (250, 310)])
     # pygame.draw.polygon(screen, pygame.Color('gray'), [(50, 370), (50, 420), (250, 420), (250, 370)])
     # pygame.draw.polygon(screen, pygame.Color('gray'), [(50, 430), (50, 480), (250, 480), (250, 430)])
+    # pygame.draw.polygon(screen, pygame.Color('gray'), [(50, 490), (50, 540), (250, 540), (250, 490)])
 
     pygame.draw.polygon(screen, pygame.Color('black'), [(50, 250), (50, 300), (250, 300), (250, 250)])
     font = pygame.font.Font(None, 30)
@@ -539,6 +540,8 @@ def menu():
     else:
         blood_text = ["B.L.O.O.D. O.N."]
 
+    restart_text = ["<.R.E.T.R.Y."]
+
     exit_text = ["E.X.I.T"]
 
     fon = pygame.transform.scale(load_image('fon2.jpg'), (WIDTH, HEIGHT))
@@ -579,6 +582,7 @@ def menu():
         intro_rect.x = 55
         text_coord += intro_rect.height
         screen.blit(string_rendered, intro_rect)
+
     pygame.draw.polygon(screen, pygame.Color('black'), [(50, 430), (50, 480), (250, 480), (250, 430)])
     font = pygame.font.Font(None, 30)
     text_coord = 50
@@ -586,6 +590,18 @@ def menu():
         string_rendered = font.render(line, 1, pygame.Color('white'))
         intro_rect = string_rendered.get_rect()
         text_coord += 390
+        intro_rect.top = text_coord
+        intro_rect.x = 55
+        text_coord += intro_rect.height
+        screen.blit(string_rendered, intro_rect)
+
+    pygame.draw.polygon(screen, pygame.Color('black'), [(50, 490), (50, 540), (250, 540), (250, 490)])
+    font = pygame.font.Font(None, 30)
+    text_coord = 50
+    for line in restart_text:
+        string_rendered = font.render(line, 1, pygame.Color('white'))
+        intro_rect = string_rendered.get_rect()
+        text_coord += 450
         intro_rect.top = text_coord
         intro_rect.x = 55
         text_coord += intro_rect.height
@@ -730,12 +746,42 @@ def menu():
                 text_coord += intro_rect.height
                 screen.blit(string_rendered, intro_rect)
 
+        x1_5 = args[5][0]
+        x2_5 = args[5][1]
+        y1_5 = args[5][2]
+        y2_5 = args[5][3]
+        if x1_5 <= a <= x2_5 and y1_5 <= b <= y2_5:
+            flag3 = 5
+            pygame.draw.polygon(screen, pygame.Color('red'), [(50, 490), (50, 540), (250, 540), (250, 490)])
+            font = pygame.font.Font(None, 30)
+            text_coord = 50
+            for line in restart_text:
+                string_rendered = font.render(line, 1, pygame.Color('white'))
+                intro_rect = string_rendered.get_rect()
+                text_coord += 450
+                intro_rect.top = text_coord
+                intro_rect.x = 55
+                text_coord += intro_rect.height
+                screen.blit(string_rendered, intro_rect)
+        else:
+            pygame.draw.polygon(screen, pygame.Color('black'), [(50, 490), (50, 540), (250, 540), (250, 490)])
+            font = pygame.font.Font(None, 30)
+            text_coord = 50
+            for line in restart_text:
+                string_rendered = font.render(line, 1, pygame.Color('white'))
+                intro_rect = string_rendered.get_rect()
+                text_coord += 450
+                intro_rect.top = text_coord
+                intro_rect.x = 55
+                text_coord += intro_rect.height
+                screen.blit(string_rendered, intro_rect)
+
     while True:
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 terminate()
             if event.type == pygame.MOUSEMOTION:
-                update(event.pos, [50, 250, 250, 300], [50, 250, 310, 360], [50, 250, 370, 420], [50, 250, 430, 480])
+                update(event.pos, [50, 250, 250, 300], [50, 250, 310, 360], [50, 250, 370, 420], [50, 250, 430, 480], [50, 250, 490, 540])
                 x, y = event.pos
                 arrow.update(x, y)
             if (event.type == pygame.MOUSEBUTTONDOWN and flag3 == 1) or event.type == pygame.KEYUP and event.key == pygame.K_ESCAPE:
@@ -749,17 +795,21 @@ def menu():
                     vol = 0.5
                     f = 0
                 pygame.mixer.music.set_volume(abs(0.0 - vol))
-                update(event.pos, [50, 250, 250, 300], [50, 250, 310, 360], [50, 250, 370, 420], [50, 250, 430, 480])
+                update(event.pos, [50, 250, 250, 300], [50, 250, 310, 360], [50, 250, 370, 420], [50, 250, 430, 480], [50, 250, 490, 540])
             if event.type == pygame.MOUSEBUTTONDOWN and flag3 == 3:
                 if blood == 0:
                     blood = 1
                 else:
                     blood = 0
-                update(event.pos, [50, 250, 250, 300], [50, 250, 310, 360], [50, 250, 370, 420], [50, 250, 430, 480])
+                update(event.pos, [50, 250, 250, 300], [50, 250, 310, 360], [50, 250, 370, 420], [50, 250, 430, 480], [50, 250, 490, 540])
 
             if event.type == pygame.MOUSEBUTTONDOWN and flag3 == 4:
                 exit = 1
                 start_screen()
+                return
+
+            if event.type == pygame.MOUSEBUTTONDOWN and flag3 == 5 or event.type == pygame.KEYUP and event.key == pygame.K_SPACE:
+                clean()
                 return
 
         pygame.display.flip()
@@ -1223,7 +1273,6 @@ def died():
             if event.type == pygame.MOUSEBUTTONDOWN and flag5 == 1 or event.type == pygame.KEYUP and event.key == pygame.K_SPACE:
                 clean()
                 return
-
             if event.type == pygame.MOUSEBUTTONDOWN and flag5 == 2:
                 start_screen()
                 return
