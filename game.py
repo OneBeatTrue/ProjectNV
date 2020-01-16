@@ -1204,8 +1204,8 @@ class Bullet(pygame.sprite.Sprite):
             self.kill()
         if pygame.sprite.spritecollideany(self, walls_group):
             self.kill()
-        if pygame.sprite.spritecollideany(self, player_group):
-            self.disappear = True
+        # if pygame.sprite.spritecollideany(self, player_group):
+        #     self.disappear = True
         if pygame.sprite.spritecollideany(self, enemies_group):
             self.disappear = True
 
@@ -1346,14 +1346,16 @@ class Player(pygame.sprite.Sprite):
                 now_level = 0
                 with open("data/now_level.txt", 'w', encoding='utf-8') as f:
                     f.write(str(now_level))
-                # start_screen()
+                contin()
+                start_screen()
             else:
+                contin()
                 clean()
                 pygame.display.flip()
                 # print(now_level)
                 with open("data/now_level.txt", 'w', encoding='utf-8') as f:
                     f.write(str(now_level))
-            contin()
+
         if pygame.sprite.spritecollideany(self, bullets_group) or pygame.sprite.spritecollideany(self, enemies_group):
             global player_image_static, player_image_jumping, player_image_climbing
             herodeath_sound.play()
