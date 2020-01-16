@@ -49,9 +49,12 @@ def generate_level(level):
     new_player, x, y = None, None, None
     xp = 0
     yp = 0
+    xb = 0
+    yb = 0
     doors = list()
     enemies = list()
     peaks = list()
+    boss = None
     for y in range(len(level)):
         for x in range(len(level[y])):
             if level[y][x] == '_':
@@ -71,6 +74,10 @@ def generate_level(level):
             elif level[y][x] == ')':
                 Tile('empty', x, y)
                 enemies.append([x, y, True])
+            elif level[y][x] == '&':
+                Tile('empty', x, y)
+                xb = x
+                yb = y
             elif level[y][x] == '(':
                 Tile('empty', x, y)
                 enemies.append([x, y, False])
@@ -83,7 +90,9 @@ def generate_level(level):
                 xp = x
                 yp = y
     enemies = [Enemy(i[0], i[1], i[2]) for i in enemies]
-    peakss = [Peak(i[0], i[1]) for i in peaks]
+    peaks = [Peak(i[0], i[1]) for i in peaks]
+    if xb != 0 and  yb != 0:
+        boss = Boss(xb, yb)
     new_player = Player(xp, yp)
     player_image_static = load_image('hero.png', -1)
     player_image_jumping = load_image('herojump.png', -1)
@@ -93,19 +102,20 @@ def generate_level(level):
     # pygame.mixer.music.set_volume(0.4)
     pygame.mixer.music.play(loops=-1)
     # вернем игрока, а также размер поля в клетках
-    return new_player, enemies, peaks, x, y, button, doors, False
+    return new_player, enemies, boss, peaks, x, y, button, doors, False
 
 
 def clean():
-    global player, enemies, peaks, level_x, level_y, button, doors, next_level, key, alive # , check_cam
+    global player, enemies, boss, peaks, level_x, level_y, button, doors, next_level, key, alive, event_counter # , check_cam
     for i in all_sprites:
         all_sprites.remove(i)
         i.kill()
+    event_counter = 0
     key = [False, False, False, False]
     alive = True
     # check_cam = True
     # print(now_level, levels_list)
-    player, enemies, peaks, level_x, level_y, button, doors, next_level = generate_level(load_level(levels_list[now_level]))
+    player, enemies, boss, peaks, level_x, level_y, button, doors, next_level = generate_level(load_level(levels_list[now_level]))
 
 
 with open("data/options.txt", 'r') as f:
@@ -363,7 +373,7 @@ def options():
     else:
         blood_text = ["B.L.O.O.D. O.N."]
 
-    fon = pygame.transform.scale(load_image('opt_fon.jpg'), (WIDTH, HEIGHT))
+    fon = pygame.transform.scale(load_image('fon2.jpg'), (WIDTH, HEIGHT))
     screen.blit(fon, (0, 0))
 
     pygame.draw.polygon(screen, pygame.Color('black'), [(50, 250), (50, 300), (250, 300), (250, 250)])
@@ -576,7 +586,7 @@ def menu():
 
     exit_text = ["E.X.I.T"]
 
-    fon = pygame.transform.scale(load_image('menu_fon.jpg'), (WIDTH, HEIGHT))
+    fon = pygame.transform.scale(load_image('fon2.jpg'), (WIDTH, HEIGHT))
     screen.blit(fon, (0, 0))
 
     pygame.draw.polygon(screen, pygame.Color('black'), [(50, 250), (50, 300), (250, 300), (250, 250)])
@@ -876,7 +886,7 @@ def load():
 
 
 
-    fon = pygame.transform.scale(load_image('load_fon.jpg'), (WIDTH, HEIGHT))
+    fon = pygame.transform.scale(load_image('fon2.jpg'), (WIDTH, HEIGHT))
     screen.blit(fon, (0, 0))
 
     pygame.draw.polygon(screen, pygame.Color('black'), [(50, 250), (50, 300), (250, 300), (250, 250)])
@@ -1256,7 +1266,7 @@ def died():
     retry_text = ["<.R.E.T.R.Y."]
     exit_text = ["M.E.N.U."]
 
-    fon = pygame.transform.scale(load_image('died_fon.jpg'), (WIDTH, HEIGHT))
+    fon = pygame.transform.scale(load_image('fon3.jpg'), (WIDTH, HEIGHT))
     screen.blit(fon, (0, 0))
 
     pygame.draw.polygon(screen, pygame.Color('black'), [(50, 250), (50, 300), (250, 300), (250, 250)])
@@ -1374,87 +1384,6 @@ def died():
         clock.tick(FPS)
 
 
-flag6 = 0
-
-
-def end_screen():
-    global flag6
-    next_text = ["N.E.X.T.>"]
-
-    fon = pygame.transform.scale(load_image('end.jpg'), (WIDTH, HEIGHT))
-    screen.blit(fon, (0, 0))
-
-    pygame.draw.polygon(screen, pygame.Color('black'), [(50, 250), (50, 300), (250, 300), (250, 250)])
-    font = pygame.font.Font(None, 30)
-    text_coord = 50
-    for line in next_text:
-        string_rendered = font.render(line, 1, pygame.Color('white'))
-        intro_rect = string_rendered.get_rect()
-        text_coord += 210
-        intro_rect.top = text_coord
-        intro_rect.x = 55
-        text_coord += intro_rect.height
-        screen.blit(string_rendered, intro_rect)
-
-
-    def update(*args):
-        global flag4
-
-        a = args[0][0]
-        b = args[0][1]
-        x1_1 = args[1][0]
-        x2_1 = args[1][1]
-        y1_1 = args[1][2]
-        y2_1 = args[1][3]
-
-        if x1_1 <= a <= x2_1 and y1_1 <= b <= y2_1:
-            flag4 = 1
-            pygame.draw.polygon(screen, pygame.Color('red'), [(50, 250), (50, 300), (250, 300), (250, 250)])
-            font = pygame.font.Font(None, 30)
-            text_coord = 50
-            for line in next_text:
-                string_rendered = font.render(line, 1, pygame.Color('white'))
-                intro_rect = string_rendered.get_rect()
-                text_coord += 210
-                intro_rect.top = text_coord
-                intro_rect.x = 55
-                text_coord += intro_rect.height
-                screen.blit(string_rendered, intro_rect)
-        else:
-            pygame.draw.polygon(screen, pygame.Color('black'), [(50, 250), (50, 300), (250, 300), (250, 250)])
-            font = pygame.font.Font(None, 30)
-            text_coord = 50
-            for line in next_text:
-                string_rendered = font.render(line, 1, pygame.Color('white'))
-                intro_rect = string_rendered.get_rect()
-                text_coord += 210
-                intro_rect.top = text_coord
-                intro_rect.x = 55
-                text_coord += intro_rect.height
-                screen.blit(string_rendered, intro_rect)
-
-    while True:
-        for event in pygame.event.get():
-            if event.type == pygame.QUIT:
-                with open("data/options.txt", 'w', encoding='utf-8') as f:
-                    # print(str(volume) + str(blood))
-                    f.write(str(volume) + str(blood))
-                with open("data/now_level.txt", 'w', encoding='utf-8') as f:
-                    # print(str(volume) + str(blood))
-                    f.write(str(now_level))
-                terminate()
-            if event.type == pygame.MOUSEMOTION:
-                update(event.pos, [50, 250, 250, 300], [50, 250, 310, 360])
-                x, y = event.pos
-                arrow.update(x, y)
-            if event.type == pygame.MOUSEBUTTONDOWN and flag6 == 1 or event.type == pygame.KEYUP and event.key == pygame.K_SPACE:
-                start_screen()
-                return
-
-        pygame.display.flip()
-        clock.tick(FPS)
-
-
 def terminate():
     pygame.quit()
     sys.exit()
@@ -1508,7 +1437,8 @@ class Button(pygame.sprite.Sprite):
         self.rect = self.image.get_rect().move(tile_width * pos_x, tile_height * pos_y)
 
     def update(self):
-        if pygame.sprite.spritecollideany(self, player_group):
+        print(boss is None)
+        if pygame.sprite.spritecollideany(self, player_group) and (boss is None):
             self.image = button_image_clicked
             # pygame.time.set_timer(MYEVENTTYPE, hardness)
             doors_group.update()
@@ -1526,22 +1456,36 @@ class Arrow(pygame.sprite.Sprite):
 
 
 class Bullet(pygame.sprite.Sprite):
-    def __init__(self, x, y, definition):
+    def __init__(self, x, y, definition, boss=None):
         pygame.sprite.Sprite.__init__(self)
-        self.image = pygame.transform.scale(bullet_image, (20, 10))
-        self.rect = self.image.get_rect()
+        if boss is not None:
+            if boss > 0:
+                self.image = pygame.transform.scale(bullet_turn_image, (20, 15))
+            if boss < 0:
+                self.image = pygame.transform.scale(bullet_turn_image, (20, 15))
+                self.image = pygame.transform.flip(self.image, False, True)
+            if boss == 0:
+                self.image = pygame.transform.scale(bullet_image, (20, 10))
+            self.rect = self.image.get_rect()
+            self.speedy = boss
+        else:
+            self.image = pygame.transform.scale(bullet_image, (20, 10))
+            self.rect = self.image.get_rect()
+            self.speedy = 0
         self.disappear = False
+
         if definition:
             self.rect.centerx = x + 10
-            self.speed = 30
+            self.speedx = 30
         else:
             self.rect.centerx = x - 10
-            self.speed = -30
+            self.speedx = -30
             self.image = pygame.transform.flip(self.image, True, False)
         self.rect.centery = y - 15
 
     def update(self):
-        self.rect.x += self.speed
+        self.rect.x += self.speedx
+        self.rect.y -= self.speedy
         # убить, если он заходит за верхнюю часть экрана
         if self.disappear:
             self.kill()
@@ -1551,7 +1495,8 @@ class Bullet(pygame.sprite.Sprite):
         #     self.disappear = True
         if pygame.sprite.spritecollideany(self, enemies_group):
             self.disappear = True
-
+        if pygame.sprite.spritecollideany(self, boss_group):
+            self.disappear = True
 
 class Particle(pygame.sprite.Sprite):
     # сгенерируем частицы разного размера
@@ -1600,6 +1545,67 @@ class Area(pygame.sprite.Sprite):
             self.rect = self.image.get_rect().move(tile_width * pos_x, tile_height * pos_y - 30)
         else:
             self.rect = self.image.get_rect().move(tile_width * pos_x - 720, tile_height * pos_y - 30)
+
+
+class Boss(pygame.sprite.Sprite):
+    def __init__(self, pos_x, pos_y):
+        super().__init__(boss_group, all_sprites)
+        self.image = pygame.transform.scale(boss_image, (80, 80))
+        self.definition = True
+        self.hp = 10
+        self.area = Area(pos_x, pos_y, self.definition)
+
+        if not self.definition:
+            # self.area = Area(pos_x - 800, pos_y)
+            self.image = pygame.transform.flip(self.image, True, False)
+
+        self.rect = self.image.get_rect().move(tile_width * pos_x, tile_height * pos_y)
+        # self.rect.x -= 15
+
+
+    def update(self):
+        if pygame.sprite.spritecollideany(self, bullets_group):
+            self.hp -=1
+            death_sound.play()
+            if blood == 0 and self.hp <= 0:
+                create_particles((self.rect.centerx, self.rect.centery))
+            if self.hp <= 0:
+                self.kill()
+        if pygame.sprite.spritecollideany(self, walls_group):
+            if pygame.sprite.spritecollide(self, walls_group, False)[0].rect.y <= self.rect.y:
+                while pygame.sprite.spritecollideany(self, walls_group):
+                    self.rect.y += 1
+            else:
+                while pygame.sprite.spritecollideany(self, walls_group):
+                    self.rect.y -= 1
+
+
+    def turn(self):
+        # print('yes')
+
+        if not pygame.sprite.spritecollideany(self.area, player_group):
+            self.definition = not self.definition
+            self.image = pygame.transform.flip(self.image, True, False)
+            # self.area.kill()
+            if self.definition:
+                self.area.rect.x += 720
+            else:
+                self.area.rect.x -= 720
+
+
+    def shoot(self):
+        # print('sprite')
+        if pygame.sprite.spritecollideany(self.area, player_group):
+            print('yes')
+            for i in [13, 0, -13]:
+                if self.definition:
+                    bullet = Bullet(self.rect.centerx + 41, self.rect.centery + 20, self.definition, i)
+                else:
+                    bullet = Bullet(self.rect.centerx - 41, self.rect.centery + 20, self.definition, i)
+                all_sprites.add(bullet)
+                bullets_group.add(bullet)
+            shoot_sound.play()
+
 
 
 class Enemy(pygame.sprite.Sprite):
@@ -1690,10 +1696,7 @@ class Player(pygame.sprite.Sprite):
             global player, level_x, level_y, button, doors, now_level, levels_list, update_level, level
             screen.fill(pygame.Color('black'))
             now_level += 1
-            if now_level == 3:
-                end_screen()
-            else:
-                contin()
+            contin()
             if len(levels_list) == now_level:
                 now_level = 0
                 with open("data/now_level.txt", 'w', encoding='utf-8') as f:
@@ -1712,7 +1715,7 @@ class Player(pygame.sprite.Sprite):
                         f.write(str(level))
 
         if (pygame.sprite.spritecollideany(self, bullets_group) or pygame.sprite.spritecollideany(self, enemies_group)
-                or pygame.sprite.spritecollideany(self, peaks_group)):
+                or pygame.sprite.spritecollideany(self, peaks_group) or pygame.sprite.spritecollideany(self, boss_group)):
             global player_image_static, player_image_jumping, player_image_climbing, alive # , check_cam
             herodeath_sound.play()
             alive = False
@@ -1722,6 +1725,7 @@ class Player(pygame.sprite.Sprite):
             if pygame.sprite.spritecollideany(self, bullets_group):
                 pygame.sprite.spritecollide(self, bullets_group, False)[0].kill()
             self.kill()
+            key = [False, False, False, False]
             # check_cam = False
             if blood == 0:
                 create_particles((self.rect.centerx, self.rect.centery), self)
@@ -1805,9 +1809,11 @@ player_image_static = load_image('hero.png', -1)
 player_image_jumping = load_image('herojump.png', -1)
 player_image_climbing = load_image('heroback.png', -1)
 alive = True
+boss_image = load_image('boss.png', -1)
 enemy_image = load_image('enemy.png', -1)
 peak_image = load_image('peak.png', -1)
 bullet_image = load_image('bullet.png', -1)
+bullet_turn_image = load_image('bullet2.png', -1)
 button_image_unclicked = load_image('button1.png', -1)
 button_image_clicked = load_image('button2.png', -1)
 door_image_closed = load_image('door1.png')
@@ -1827,6 +1833,7 @@ pygame.mixer.music.set_volume(0.5)
 # check_cam = True
 MYEVENTTYPE = 30
 hardness = 1200
+event_counter = 0
 pygame.time.set_timer(MYEVENTTYPE, hardness)
 # pygame.mixer.music.play()
 with open("data/now_level.txt", 'r') as mapFile:
@@ -1842,6 +1849,7 @@ button_group = pygame.sprite.Group()
 doors_group = pygame.sprite.Group()
 arrow_group = pygame.sprite.Group()
 bullets_group = pygame.sprite.Group()
+boss_group = pygame.sprite.Group()
 enemies_group = pygame.sprite.Group()
 peaks_group = pygame.sprite.Group()
 blood_group = pygame.sprite.Group()
@@ -1849,7 +1857,7 @@ camera = Camera()
 arrow = Arrow(0, 0)
 
 start_screen()
-player, enemies, peaks,  level_x, level_y, button, doors, next_level = None, None, None, None, None, None, None, None
+player, enemies, boss, peaks,  level_x, level_y, button, doors, next_level = None, None, None, None, None, None, None, None, None
 clean()
 running = True
 while running:
@@ -1898,14 +1906,23 @@ while running:
             if pygame.mouse.get_focused():
                 arrow_group.draw(screen)
         if event.type == MYEVENTTYPE:
+            event_counter += 1
             if alive:
                 for sprite in enemies_group:
                     sprite.shoot()
+                for sprite in boss_group:
+                    sprite.shoot()
+            if event_counter == 3:
+                # print(event_counter)
+                for sprite in boss_group:
+                    sprite.turn()
+                event_counter = 0
         if event.type == pygame.KEYUP:           #писал виталя
             if event.key == pygame.K_ESCAPE:
                 menu()
                 if exit == 1:
                     exit = 0
+
     if not alive:
         key = [False, False, False, False]
         # print(key)
@@ -1914,9 +1931,12 @@ while running:
     player_group.update(key)
     if alive:
         button_group.update()
-
+    boss_group.update()
+    if len(boss_group) == 0:
+        boss = None
     enemies_group.update()
     blood_group.update()
+    # print(now_level)
     # изменяем ракурс камеры
     # if check_cam:
     #     camera.update(player)
