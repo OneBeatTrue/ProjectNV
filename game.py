@@ -363,7 +363,7 @@ def options():
     else:
         blood_text = ["B.L.O.O.D. O.N."]
 
-    fon = pygame.transform.scale(load_image('fon2.jpg'), (WIDTH, HEIGHT))
+    fon = pygame.transform.scale(load_image('opt_fon.jpg'), (WIDTH, HEIGHT))
     screen.blit(fon, (0, 0))
 
     pygame.draw.polygon(screen, pygame.Color('black'), [(50, 250), (50, 300), (250, 300), (250, 250)])
@@ -576,7 +576,7 @@ def menu():
 
     exit_text = ["E.X.I.T"]
 
-    fon = pygame.transform.scale(load_image('fon2.jpg'), (WIDTH, HEIGHT))
+    fon = pygame.transform.scale(load_image('menu_fon.jpg'), (WIDTH, HEIGHT))
     screen.blit(fon, (0, 0))
 
     pygame.draw.polygon(screen, pygame.Color('black'), [(50, 250), (50, 300), (250, 300), (250, 250)])
@@ -876,7 +876,7 @@ def load():
 
 
 
-    fon = pygame.transform.scale(load_image('fon2.jpg'), (WIDTH, HEIGHT))
+    fon = pygame.transform.scale(load_image('load_fon.jpg'), (WIDTH, HEIGHT))
     screen.blit(fon, (0, 0))
 
     pygame.draw.polygon(screen, pygame.Color('black'), [(50, 250), (50, 300), (250, 300), (250, 250)])
@@ -1256,7 +1256,7 @@ def died():
     retry_text = ["<.R.E.T.R.Y."]
     exit_text = ["M.E.N.U."]
 
-    fon = pygame.transform.scale(load_image('fon3.jpg'), (WIDTH, HEIGHT))
+    fon = pygame.transform.scale(load_image('died_fon.jpg'), (WIDTH, HEIGHT))
     screen.blit(fon, (0, 0))
 
     pygame.draw.polygon(screen, pygame.Color('black'), [(50, 250), (50, 300), (250, 300), (250, 250)])
@@ -1367,6 +1367,87 @@ def died():
                 clean()
                 return
             if event.type == pygame.MOUSEBUTTONDOWN and flag5 == 2:
+                start_screen()
+                return
+
+        pygame.display.flip()
+        clock.tick(FPS)
+
+
+flag6 = 0
+
+
+def end_screen():
+    global flag6
+    next_text = ["N.E.X.T.>"]
+
+    fon = pygame.transform.scale(load_image('end.jpg'), (WIDTH, HEIGHT))
+    screen.blit(fon, (0, 0))
+
+    pygame.draw.polygon(screen, pygame.Color('black'), [(50, 250), (50, 300), (250, 300), (250, 250)])
+    font = pygame.font.Font(None, 30)
+    text_coord = 50
+    for line in next_text:
+        string_rendered = font.render(line, 1, pygame.Color('white'))
+        intro_rect = string_rendered.get_rect()
+        text_coord += 210
+        intro_rect.top = text_coord
+        intro_rect.x = 55
+        text_coord += intro_rect.height
+        screen.blit(string_rendered, intro_rect)
+
+
+    def update(*args):
+        global flag4
+
+        a = args[0][0]
+        b = args[0][1]
+        x1_1 = args[1][0]
+        x2_1 = args[1][1]
+        y1_1 = args[1][2]
+        y2_1 = args[1][3]
+
+        if x1_1 <= a <= x2_1 and y1_1 <= b <= y2_1:
+            flag4 = 1
+            pygame.draw.polygon(screen, pygame.Color('red'), [(50, 250), (50, 300), (250, 300), (250, 250)])
+            font = pygame.font.Font(None, 30)
+            text_coord = 50
+            for line in next_text:
+                string_rendered = font.render(line, 1, pygame.Color('white'))
+                intro_rect = string_rendered.get_rect()
+                text_coord += 210
+                intro_rect.top = text_coord
+                intro_rect.x = 55
+                text_coord += intro_rect.height
+                screen.blit(string_rendered, intro_rect)
+        else:
+            pygame.draw.polygon(screen, pygame.Color('black'), [(50, 250), (50, 300), (250, 300), (250, 250)])
+            font = pygame.font.Font(None, 30)
+            text_coord = 50
+            for line in next_text:
+                string_rendered = font.render(line, 1, pygame.Color('white'))
+                intro_rect = string_rendered.get_rect()
+                text_coord += 210
+                intro_rect.top = text_coord
+                intro_rect.x = 55
+                text_coord += intro_rect.height
+                screen.blit(string_rendered, intro_rect)
+
+    while True:
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                with open("data/options.txt", 'w', encoding='utf-8') as f:
+                    # print(str(volume) + str(blood))
+                    f.write(str(volume) + str(blood))
+                with open("data/now_level.txt", 'w', encoding='utf-8') as f:
+                    # print(str(volume) + str(blood))
+                    f.write(str(now_level))
+                terminate()
+            if event.type == pygame.MOUSEMOTION:
+                update(event.pos, [50, 250, 250, 300], [50, 250, 310, 360])
+                x, y = event.pos
+                arrow.update(x, y)
+            if event.type == pygame.MOUSEBUTTONDOWN and flag6 == 1 or event.type == pygame.KEYUP and event.key == pygame.K_SPACE:
                 start_screen()
                 return
 
@@ -1609,7 +1690,10 @@ class Player(pygame.sprite.Sprite):
             global player, level_x, level_y, button, doors, now_level, levels_list, update_level, level
             screen.fill(pygame.Color('black'))
             now_level += 1
-            contin()
+            if now_level == 3:
+                end_screen()
+            else:
+                contin()
             if len(levels_list) == now_level:
                 now_level = 0
                 with open("data/now_level.txt", 'w', encoding='utf-8') as f:
