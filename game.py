@@ -4,8 +4,8 @@ from os import path
 pygame.init()
 size = WIDTH, HEIGHT = 1600, 900
 # size = WIDTH, HEIGHT = 1280, 1024
-# screen = pygame.display.set_mode(size)
-screen = pygame.display.set_mode(size, pygame.FULLSCREEN)
+screen = pygame.display.set_mode(size)
+# screen = pygame.display.set_mode(size, pygame.FULLSCREEN)
 # pygame.mouse.set_visible(False)
 screen.fill(pygame.Color('black'))
 
@@ -51,6 +51,7 @@ def generate_level(level):
     yp = 0
     doors = list()
     enemies = list()
+    peaks = list()
     for y in range(len(level)):
         for x in range(len(level[y])):
             if level[y][x] == '_':
@@ -61,6 +62,9 @@ def generate_level(level):
                 Tile('wall', x, y)
             elif level[y][x] == '%':
                 Tile('stair', x, y)
+            elif level[y][x] == '^':
+                Tile('empty', x, y)
+                peaks.append([x, y])
             elif level[y][x] == '*':
                 Tile('empty', x, y)
                 button = Button(x, y)
@@ -79,6 +83,7 @@ def generate_level(level):
                 xp = x
                 yp = y
     enemies = [Enemy(i[0], i[1], i[2]) for i in enemies]
+    peakss = [Peak(i[0], i[1]) for i in peaks]
     new_player = Player(xp, yp)
     player_image_static = load_image('hero.png', -1)
     player_image_jumping = load_image('herojump.png', -1)
@@ -88,30 +93,41 @@ def generate_level(level):
     # pygame.mixer.music.set_volume(0.4)
     pygame.mixer.music.play(loops=-1)
     # вернем игрока, а также размер поля в клетках
-    return new_player, enemies, x, y, button, doors, False
+    return new_player, enemies, peaks, x, y, button, doors, False
 
 
 def clean():
-    global player, level_x, level_y, button, doors, next_level, key
+    global player, enemies, peaks, level_x, level_y, button, doors, next_level, key # , check_cam
     for i in all_sprites:
         all_sprites.remove(i)
         i.kill()
     key = [False, False, False, False]
-    player, enemies, level_x, level_y, button, doors, next_level = generate_level(load_level(levels_list[now_level]))
+    # check_cam = True
+    # print(now_level, levels_list)
+    player, enemies, peaks, level_x, level_y, button, doors, next_level = generate_level(load_level(levels_list[now_level]))
 
 
-def start_screen():
-    # global fon_sound
+with open("data/options.txt", 'r') as f:
+    dop = str([line.strip() for line in f][0])
+    volume = int(dop[0])
+    blood = int(dop[1])
+
+
+def start_screen(volume_restart=None):
+    global volume, blood
     play_text = ["S.T.A.R.T. G.A.M.E."]
     load_text = ["L.O.A.D. G.A.M.E."]
     options_text = ["O.P.T.I.O.N.S."]
     quit_text = ["Q.U.I.T."]
     fon = pygame.transform.scale(load_image('fon2.jpg'), (WIDTH, HEIGHT))
     screen.blit(fon, (0, 0))
-    pygame.mixer.music.stop()
-    pygame.mixer.music.load(tracklist[3])
+    if volume_restart is None:
+        pygame.mixer.music.stop()
+        pygame.mixer.music.load(tracklist[3])
+        pygame.mixer.music.play(loops=-1)
     # pygame.mixer.music.set_volume(0.7)
-    pygame.mixer.music.play(loops=-1)
+    if volume == 1:
+        pygame.mixer.music.set_volume(0.0)
     # fon_sound = pygame.mixer.Sound(path.join('sounds', tracklist[3]))
     # fon_sound.set_volume(0.2)
     # fon_sound.play(loops=-1)
@@ -293,19 +309,31 @@ def start_screen():
                 intro_rect.x = 55
                 text_coord += intro_rect.height
                 screen.blit(string_rendered, intro_rect)
-
     while True:
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
+                with open("data/options.txt", 'w', encoding='utf-8') as f:
+                    # print(str(volume) + str(blood))
+                    f.write(str(volume) + str(blood))
+                with open("data/now_level.txt", 'w', encoding='utf-8') as f:
+                    # print(str(volume) + str(blood))
+                    f.write(str(now_level))
                 terminate()
             if event.type == pygame.MOUSEMOTION:
                 update(event.pos, [50, 250, 250, 300], [50, 250, 310, 360], [50, 250, 370, 420], [50, 250, 430, 480])
                 x, y = event.pos
                 arrow.update(x, y)
-            if event.type == pygame.MOUSEBUTTONDOWN and flag == 1:
+            if event.type == pygame.MOUSEBUTTONDOWN and flag == 1 or event.type == pygame.KEYUP and event.key == pygame.K_SPACE:
+                # print(now_level)
                 clean()
                 return  # начинаем
             if event.type == pygame.MOUSEBUTTONDOWN and flag == 4:
+                with open("data/options.txt", 'w', encoding='utf-8') as f:
+                    # print(str(volume) + str(blood))
+                    f.write(str(volume) + str(blood))
+                with open("data/now_level.txt", 'w', encoding='utf-8') as f:
+                    # print(str(volume) + str(blood))
+                    f.write(str(now_level))
                 terminate()
             if event.type == pygame.MOUSEBUTTONDOWN and flag == 3:
                 options()
@@ -317,17 +345,14 @@ def start_screen():
         clock.tick(FPS)
 
 
-f = 0
-blood = 0
-
 
 def options():
     opt_text = ["<.B.A.C.K."]
 
-    global f
+    global volume
     global blood
 
-    if f == 1:
+    if volume == 1:
         volume_text = ["V.O.L.U.M.E. O.F.F."]
     else:
         volume_text = ["V.O.L.U.M.E. O.N."]
@@ -378,11 +403,11 @@ def options():
 
     def update(*args):
         global flag1
-        global f
+        global volume
         global volume_text
         global blood
 
-        if f == 1:
+        if volume == 1:
             volume_text = ["V.O.L.U.M.E. O.F.F."]
         else:
             volume_text = ["V.O.L.U.M.E. O.N."]
@@ -489,22 +514,28 @@ def options():
     while True:
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
+                with open("data/options.txt", 'w', encoding='utf-8') as f:
+                    # print(str(volume) + str(blood))
+                    f.write(str(volume) + str(blood))
+                with open("data/now_level.txt", 'w', encoding='utf-8') as f:
+                    # print(str(volume) + str(blood))
+                    f.write(str(now_level))
                 terminate()
             if event.type == pygame.MOUSEMOTION:
                 update(event.pos, [50, 250, 250, 300], [50, 250, 310, 360], [50, 250, 370, 420])
                 x, y = event.pos
                 arrow.update(x, y)
             if event.type == pygame.MOUSEBUTTONDOWN and flag1 == 1:
-                start_screen()
+                start_screen(False)
                 return
 
             if event.type == pygame.MOUSEBUTTONDOWN and flag1 == 2:
-                if f == 0:
+                if volume == 0:
                     vol = 0.0
-                    f = 1
+                    volume = 1
                 else:
                     vol = 0.5
-                    f = 0
+                    volume = 0
                 pygame.mixer.music.set_volume(abs(0.0 - vol))
                 update(event.pos, [50, 250, 250, 300], [50, 250, 310, 360], [50, 250, 370, 420])
             if event.type == pygame.MOUSEBUTTONDOWN and flag1 == 3:
@@ -521,15 +552,16 @@ def options():
 flag3 = 0
 exit = 0
 
+
 def menu():
     opt_text = ["<.B.A.C.K."]
 
 
-    global f
+    global volume
     global blood
     global exit
 
-    if f == 1:
+    if volume == 1:
         volume_text = ["V.O.L.U.M.E. O.F.F."]
     else:
         volume_text = ["V.O.L.U.M.E. O.N."]
@@ -538,6 +570,8 @@ def menu():
         blood_text = ["B.L.O.O.D. O.F.F."]
     else:
         blood_text = ["B.L.O.O.D. O.N."]
+
+    restart_text = ["<.R.E.T.R.Y."]
 
     exit_text = ["E.X.I.T"]
 
@@ -579,6 +613,7 @@ def menu():
         intro_rect.x = 55
         text_coord += intro_rect.height
         screen.blit(string_rendered, intro_rect)
+
     pygame.draw.polygon(screen, pygame.Color('black'), [(50, 430), (50, 480), (250, 480), (250, 430)])
     font = pygame.font.Font(None, 30)
     text_coord = 50
@@ -591,13 +626,25 @@ def menu():
         text_coord += intro_rect.height
         screen.blit(string_rendered, intro_rect)
 
+    pygame.draw.polygon(screen, pygame.Color('black'), [(50, 490), (50, 540), (250, 540), (250, 490)])
+    font = pygame.font.Font(None, 30)
+    text_coord = 50
+    for line in restart_text:
+        string_rendered = font.render(line, 1, pygame.Color('white'))
+        intro_rect = string_rendered.get_rect()
+        text_coord += 450
+        intro_rect.top = text_coord
+        intro_rect.x = 55
+        text_coord += intro_rect.height
+        screen.blit(string_rendered, intro_rect)
+
     def update(*args):
         global flag3
-        global f
+        global volume
         global volume_text
         global blood
 
-        if f == 1:
+        if volume == 1:
             volume_text = ["V.O.L.U.M.E. O.F.F."]
         else:
             volume_text = ["V.O.L.U.M.E. O.N."]
@@ -730,36 +777,76 @@ def menu():
                 text_coord += intro_rect.height
                 screen.blit(string_rendered, intro_rect)
 
+        x1_5 = args[5][0]
+        x2_5 = args[5][1]
+        y1_5 = args[5][2]
+        y2_5 = args[5][3]
+        if x1_5 <= a <= x2_5 and y1_5 <= b <= y2_5:
+            flag3 = 5
+            pygame.draw.polygon(screen, pygame.Color('red'), [(50, 490), (50, 540), (250, 540), (250, 490)])
+            font = pygame.font.Font(None, 30)
+            text_coord = 50
+            for line in restart_text:
+                string_rendered = font.render(line, 1, pygame.Color('white'))
+                intro_rect = string_rendered.get_rect()
+                text_coord += 450
+                intro_rect.top = text_coord
+                intro_rect.x = 55
+                text_coord += intro_rect.height
+                screen.blit(string_rendered, intro_rect)
+        else:
+            pygame.draw.polygon(screen, pygame.Color('black'), [(50, 490), (50, 540), (250, 540), (250, 490)])
+            font = pygame.font.Font(None, 30)
+            text_coord = 50
+            for line in restart_text:
+                string_rendered = font.render(line, 1, pygame.Color('white'))
+                intro_rect = string_rendered.get_rect()
+                text_coord += 450
+                intro_rect.top = text_coord
+                intro_rect.x = 55
+                text_coord += intro_rect.height
+                screen.blit(string_rendered, intro_rect)
+
     while True:
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
+                with open("data/options.txt", 'w', encoding='utf-8') as f:
+                    # print(str(volume) + str(blood))
+                    f.write(str(volume) + str(blood))
+                with open("data/now_level.txt", 'w', encoding='utf-8') as f:
+                    # print(str(volume) + str(blood))
+                    f.write(str(now_level))
                 terminate()
             if event.type == pygame.MOUSEMOTION:
-                update(event.pos, [50, 250, 250, 300], [50, 250, 310, 360], [50, 250, 370, 420], [50, 250, 430, 480])
+                update(event.pos, [50, 250, 250, 300], [50, 250, 310, 360], [50, 250, 370, 420], [50, 250, 430, 480], [50, 250, 490, 540])
                 x, y = event.pos
                 arrow.update(x, y)
             if (event.type == pygame.MOUSEBUTTONDOWN and flag3 == 1) or event.type == pygame.KEYUP and event.key == pygame.K_ESCAPE:
                 return
 
             if event.type == pygame.MOUSEBUTTONDOWN and flag3 == 2:
-                if f == 0:
+                if volume == 0:
                     vol = 0.0
-                    f = 1
+                    volume = 1
                 else:
                     vol = 0.5
-                    f = 0
+                    volume = 0
                 pygame.mixer.music.set_volume(abs(0.0 - vol))
-                update(event.pos, [50, 250, 250, 300], [50, 250, 310, 360], [50, 250, 370, 420], [50, 250, 430, 480])
+                update(event.pos, [50, 250, 250, 300], [50, 250, 310, 360], [50, 250, 370, 420], [50, 250, 430, 480], [50, 250, 490, 540])
             if event.type == pygame.MOUSEBUTTONDOWN and flag3 == 3:
                 if blood == 0:
                     blood = 1
                 else:
                     blood = 0
-                update(event.pos, [50, 250, 250, 300], [50, 250, 310, 360], [50, 250, 370, 420], [50, 250, 430, 480])
+                update(event.pos, [50, 250, 250, 300], [50, 250, 310, 360], [50, 250, 370, 420], [50, 250, 430, 480], [50, 250, 490, 540])
 
             if event.type == pygame.MOUSEBUTTONDOWN and flag3 == 4:
                 exit = 1
                 start_screen()
+                return
+
+            if event.type == pygame.MOUSEBUTTONDOWN and flag3 == 5 or event.type == pygame.KEYUP and event.key == pygame.K_SPACE:
+                clean()
                 return
 
         pygame.display.flip()
@@ -767,13 +854,19 @@ def menu():
 
 
 
+
 flag2 = 0
-level = 3
+with open("data/pass_levels.txt", 'r') as f:
+    # print([line.strip() for line in f])
+    level = int([line.strip() for line in f][0])
+update_level = not level == 3
+
 
 
 def load():
     global flag2
     global level
+    global now_level
 
     load_text = ["<.B.A.C.K."]
     l1_text = ["L.E.V.E.L. 1."]
@@ -797,7 +890,7 @@ def load():
         text_coord += intro_rect.height
         screen.blit(string_rendered, intro_rect)
 
-    if level >= 1:
+    if level >= 0:
         pygame.draw.polygon(screen, pygame.Color('black'), [(50, 310), (50, 360), (250, 360), (250, 310)])
         font = pygame.font.Font(None, 30)
         text_coord = 50
@@ -810,7 +903,7 @@ def load():
             text_coord += intro_rect.height
             screen.blit(string_rendered, intro_rect)
 
-    if level >= 2:
+    if level >= 1:
         pygame.draw.polygon(screen, pygame.Color('black'), [(50, 370), (50, 420), (250, 420), (250, 370)])
         font = pygame.font.Font(None, 30)
         text_coord = 50
@@ -823,7 +916,7 @@ def load():
             text_coord += intro_rect.height
             screen.blit(string_rendered, intro_rect)
 
-    if level >= 3:
+    if level >= 2:
         pygame.draw.polygon(screen, pygame.Color('black'), [(50, 430), (50, 480), (250, 480), (250, 430)])
         font = pygame.font.Font(None, 30)
         text_coord = 50
@@ -874,7 +967,7 @@ def load():
                 text_coord += intro_rect.height
                 screen.blit(string_rendered, intro_rect)
 
-        if level >= 1:
+        if level >= 0:
             x1_2 = args[2][0]
             x2_2 = args[2][1]
             y1_2 = args[2][2]
@@ -905,7 +998,7 @@ def load():
                     text_coord += intro_rect.height
                     screen.blit(string_rendered, intro_rect)
 
-        if level >= 2:
+        if level >= 1:
             x1_3 = args[3][0]
             x2_3 = args[3][1]
             y1_3 = args[3][2]
@@ -935,7 +1028,7 @@ def load():
                     intro_rect.x = 55
                     text_coord += intro_rect.height
                     screen.blit(string_rendered, intro_rect)
-        if level >= 3:
+        if level >= 2:
             x1_4 = args[4][0]
             x2_4 = args[4][1]
             y1_4 = args[4][2]
@@ -969,22 +1062,58 @@ def load():
     while True:
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
+                with open("data/options.txt", 'w', encoding='utf-8') as f:
+                    # print(str(volume) + str(blood))
+                    f.write(str(volume) + str(blood))
+                with open("data/now_level.txt", 'w', encoding='utf-8') as f:
+                    # print(str(volume) + str(blood))
+                    f.write(str(now_level))
                 terminate()
             if event.type == pygame.MOUSEMOTION:
                 update(event.pos, [50, 250, 250, 300], [50, 250, 310, 360], [50, 250, 370, 420], [50, 250, 430, 480])
                 x, y = event.pos
                 arrow.update(x, y)
             if event.type == pygame.MOUSEBUTTONDOWN and flag2 == 1:
-                start_screen()
+                start_screen(False)
                 return
             if event.type == pygame.MOUSEBUTTONDOWN and flag2 == 2:
+                now_level = 0
                 clean()
+                pygame.display.flip()
+                # print(now_level)
+                with open("data/now_level.txt", 'w', encoding='utf-8') as f:
+                    f.write(str(now_level))
+                if update_level:
+                    level = now_level + 1
+                    # print(level)
+                    with open("data/pass_levels.txt", 'w', encoding='utf-8') as f:
+                        f.write(str(level))
                 return
             if event.type == pygame.MOUSEBUTTONDOWN and flag2 == 3:
+                now_level = 1
                 clean()
+                pygame.display.flip()
+                # print(now_level)
+                with open("data/now_level.txt", 'w', encoding='utf-8') as f:
+                    f.write(str(now_level))
+                if update_level:
+                    level = now_level + 1
+                    # print(level)
+                    with open("data/pass_levels.txt", 'w', encoding='utf-8') as f:
+                        f.write(str(level))
                 return
             if event.type == pygame.MOUSEBUTTONDOWN and flag2 == 4:
+                now_level = 2
                 clean()
+                pygame.display.flip()
+                # print(now_level)
+                with open("data/now_level.txt", 'w', encoding='utf-8') as f:
+                    f.write(str(now_level))
+                if update_level:
+                    level = now_level + 1
+                    # print(level)
+                    with open("data/pass_levels.txt", 'w', encoding='utf-8') as f:
+                        f.write(str(level))
                 return
 
 
@@ -1096,15 +1225,147 @@ def contin():
     while True:
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
+                with open("data/options.txt", 'w', encoding='utf-8') as f:
+                    # print(str(volume) + str(blood))
+                    f.write(str(volume) + str(blood))
+                with open("data/now_level.txt", 'w', encoding='utf-8') as f:
+                    # print(str(volume) + str(blood))
+                    f.write(str(now_level))
                 terminate()
             if event.type == pygame.MOUSEMOTION:
                 update(event.pos, [50, 250, 250, 300], [50, 250, 310, 360])
                 x, y = event.pos
                 arrow.update(x, y)
-            if event.type == pygame.MOUSEBUTTONDOWN and flag4 == 1:
+            if event.type == pygame.MOUSEBUTTONDOWN and flag4 == 1 or event.type == pygame.KEYUP and event.key == pygame.K_SPACE:
                 return
 
             if event.type == pygame.MOUSEBUTTONDOWN and flag4 == 2:
+                start_screen()
+                return
+
+        pygame.display.flip()
+        clock.tick(FPS)
+
+
+flag5 = 0
+
+
+def died():
+    global flag5
+    retry_text = ["<.R.E.T.R.Y."]
+    exit_text = ["M.E.N.U."]
+
+    fon = pygame.transform.scale(load_image('fon3.jpg'), (WIDTH, HEIGHT))
+    screen.blit(fon, (0, 0))
+
+    pygame.draw.polygon(screen, pygame.Color('black'), [(50, 250), (50, 300), (250, 300), (250, 250)])
+    font = pygame.font.Font(None, 30)
+    text_coord = 50
+    for line in retry_text:
+        string_rendered = font.render(line, 1, pygame.Color('white'))
+        intro_rect = string_rendered.get_rect()
+        text_coord += 210
+        intro_rect.top = text_coord
+        intro_rect.x = 55
+        text_coord += intro_rect.height
+        screen.blit(string_rendered, intro_rect)
+
+    pygame.draw.polygon(screen, pygame.Color('black'), [(50, 310), (50, 360), (250, 360), (250, 310)])
+    font = pygame.font.Font(None, 30)
+    text_coord = 50
+    for line in exit_text:
+        string_rendered = font.render(line, 1, pygame.Color('white'))
+        intro_rect = string_rendered.get_rect()
+        text_coord += 270
+        intro_rect.top = text_coord
+        intro_rect.x = 55
+        text_coord += intro_rect.height
+        screen.blit(string_rendered, intro_rect)
+
+    def update(*args):
+        global flag5
+
+        a = args[0][0]
+        b = args[0][1]
+        x1_1 = args[1][0]
+        x2_1 = args[1][1]
+        y1_1 = args[1][2]
+        y2_1 = args[1][3]
+
+        if x1_1 <= a <= x2_1 and y1_1 <= b <= y2_1:
+            flag5 = 1
+            pygame.draw.polygon(screen, pygame.Color('red'), [(50, 250), (50, 300), (250, 300), (250, 250)])
+            font = pygame.font.Font(None, 30)
+            text_coord = 50
+            for line in retry_text:
+                string_rendered = font.render(line, 1, pygame.Color('white'))
+                intro_rect = string_rendered.get_rect()
+                text_coord += 210
+                intro_rect.top = text_coord
+                intro_rect.x = 55
+                text_coord += intro_rect.height
+                screen.blit(string_rendered, intro_rect)
+        else:
+            pygame.draw.polygon(screen, pygame.Color('black'), [(50, 250), (50, 300), (250, 300), (250, 250)])
+            font = pygame.font.Font(None, 30)
+            text_coord = 50
+            for line in retry_text:
+                string_rendered = font.render(line, 1, pygame.Color('white'))
+                intro_rect = string_rendered.get_rect()
+                text_coord += 210
+                intro_rect.top = text_coord
+                intro_rect.x = 55
+                text_coord += intro_rect.height
+                screen.blit(string_rendered, intro_rect)
+
+        x1_2 = args[2][0]
+        x2_2 = args[2][1]
+        y1_2 = args[2][2]
+        y2_2 = args[2][3]
+        if x1_2 <= a <= x2_2 and y1_2 <= b <= y2_2:
+            flag5 = 2
+            pygame.draw.polygon(screen, pygame.Color('red'), [(50, 310), (50, 360), (250, 360), (250, 310)])
+            font = pygame.font.Font(None, 30)
+            text_coord = 50
+            for line in exit_text:
+                string_rendered = font.render(line, 1, pygame.Color('white'))
+                intro_rect = string_rendered.get_rect()
+                text_coord += 270
+                intro_rect.top = text_coord
+                intro_rect.x = 55
+                text_coord += intro_rect.height
+                screen.blit(string_rendered, intro_rect)
+        else:
+            pygame.draw.polygon(screen, pygame.Color('black'), [(50, 310), (50, 360), (250, 360), (250, 310)])
+            font = pygame.font.Font(None, 30)
+            text_coord = 50
+            for line in exit_text:
+                string_rendered = font.render(line, 1, pygame.Color('white'))
+                intro_rect = string_rendered.get_rect()
+                text_coord += 270
+                intro_rect.top = text_coord
+                intro_rect.x = 55
+                text_coord += intro_rect.height
+                screen.blit(string_rendered, intro_rect)
+
+    while True:
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                with open("data/options.txt", 'w', encoding='utf-8') as f:
+                    # print(str(volume) + str(blood))
+                    f.write(str(volume) + str(blood))
+                with open("data/now_level.txt", 'w', encoding='utf-8') as f:
+                    # print(str(volume) + str(blood))
+                    f.write(str(now_level))
+                terminate()
+            if event.type == pygame.MOUSEMOTION:
+                update(event.pos, [50, 250, 250, 300], [50, 250, 310, 360])
+                x, y = event.pos
+                arrow.update(x, y)
+            if event.type == pygame.MOUSEBUTTONDOWN and flag5 == 1 or event.type == pygame.KEYUP and event.key == pygame.K_SPACE:
+                clean()
+                return
+            if event.type == pygame.MOUSEBUTTONDOWN and flag5 == 2:
                 start_screen()
                 return
 
@@ -1239,7 +1500,14 @@ class Particle(pygame.sprite.Sprite):
             self.kill()
             if self.sprite is not None:
                 # self.sprite.kill()
-                start_screen()
+                died()
+
+
+class Peak(pygame.sprite.Sprite):
+    def __init__(self, pos_x, pos_y):
+        super().__init__(peaks_group, all_sprites)
+        self.image = pygame.transform.scale(peak_image, (50, 50))
+        self.rect = self.image.get_rect().move(tile_width * pos_x, tile_height * pos_y)
 
 
 class Area(pygame.sprite.Sprite):
@@ -1280,8 +1548,6 @@ class Enemy(pygame.sprite.Sprite):
             else:
                 while pygame.sprite.spritecollideany(self, walls_group):
                     self.rect.y -= 1
-
-
 
     def shoot(self):
         if pygame.sprite.spritecollideany(self.area, player_group):
@@ -1339,37 +1605,45 @@ class Player(pygame.sprite.Sprite):
                 # print(3)
         # self.picture()
         if len(pygame.sprite.spritecollide(self, doors_group, False)) == 4 and next_level:
-            global player, level_x, level_y, button, doors, now_level, levels_list
+            global player, level_x, level_y, button, doors, now_level, levels_list, update_level, level
             screen.fill(pygame.Color('black'))
             now_level += 1
+            contin()
             if len(levels_list) == now_level:
                 now_level = 0
                 with open("data/now_level.txt", 'w', encoding='utf-8') as f:
                     f.write(str(now_level))
-                contin()
                 start_screen()
             else:
-                contin()
                 clean()
                 pygame.display.flip()
                 # print(now_level)
                 with open("data/now_level.txt", 'w', encoding='utf-8') as f:
                     f.write(str(now_level))
+                if update_level:
+                    level = now_level
+                    # print(level)
+                    with open("data/pass_levels.txt", 'w', encoding='utf-8') as f:
+                        f.write(str(level))
 
-        if pygame.sprite.spritecollideany(self, bullets_group) or pygame.sprite.spritecollideany(self, enemies_group):
-            global player_image_static, player_image_jumping, player_image_climbing
+        if (pygame.sprite.spritecollideany(self, bullets_group) or pygame.sprite.spritecollideany(self, enemies_group)
+                or pygame.sprite.spritecollideany(self, peaks_group)):
+            global player_image_static, player_image_jumping, player_image_climbing # , check_cam
             herodeath_sound.play()
             player_image_static = pygame.transform.scale(area_image, (40, 80))
             player_image_jumping = pygame.transform.scale(area_image, (40, 80))
             player_image_climbing = pygame.transform.scale(area_image, (40, 80))
+            if pygame.sprite.spritecollideany(self, bullets_group):
+                pygame.sprite.spritecollide(self, bullets_group, False)[0].kill()
             self.kill()
+            # check_cam = False
             if blood == 0:
                 create_particles((self.rect.centerx, self.rect.centery), self)
                 # print(1)
             else:
             # dop = self.sprite
             # if dop in player_group:
-                start_screen()
+                died()
 
 
             # fon_sound.pause()
@@ -1445,6 +1719,7 @@ player_image_static = load_image('hero.png', -1)
 player_image_jumping = load_image('herojump.png', -1)
 player_image_climbing = load_image('heroback.png', -1)
 enemy_image = load_image('enemy.png', -1)
+peak_image = load_image('peak.png', -1)
 bullet_image = load_image('bullet.png', -1)
 button_image_unclicked = load_image('button1.png', -1)
 button_image_clicked = load_image('button2.png', -1)
@@ -1452,9 +1727,8 @@ door_image_closed = load_image('door1.png')
 door_image_opened = load_image('door2.png')
 area_image = load_image("area.png", -1)
 arrow_image = load_image("arrow2.png")
-
 tile_width = tile_height = 50
-levels_list = ['level1.txt', 'level4.txt', 'level3.txt']
+levels_list = ['level1.txt', 'level2.txt', 'level3.txt']
 shoot_sound = pygame.mixer.Sound(path.join('sounds', 'shoot.wav'))
 death_sound = pygame.mixer.Sound(path.join('sounds', 'death.wav'))
 herodeath_sound = pygame.mixer.Sound(path.join('sounds', 'herodeath.wav'))
@@ -1462,13 +1736,15 @@ herodeath_sound = pygame.mixer.Sound(path.join('sounds', 'herodeath.wav'))
 tracklist = ['sounds/' + i for i in ['level1.mp3', 'level2.mp3', 'level3.mp3', 'main_theme.wav']]
 pygame.mixer.music.load(tracklist[3])
 pygame.mixer.music.set_volume(0.5)
-pygame.mixer.music.play(loops=-1)
+# pygame.mixer.music.play(loops=-1)
+# check_cam = True
 MYEVENTTYPE = 30
 hardness = 1200
 pygame.time.set_timer(MYEVENTTYPE, hardness)
 # pygame.mixer.music.play()
 with open("data/now_level.txt", 'r') as mapFile:
     now_level = int([line.strip() for line in mapFile][0])
+    # print(now_level)
 # группы спрайтов
 all_sprites = pygame.sprite.Group()
 tiles_group = pygame.sprite.Group()
@@ -1480,19 +1756,27 @@ doors_group = pygame.sprite.Group()
 arrow_group = pygame.sprite.Group()
 bullets_group = pygame.sprite.Group()
 enemies_group = pygame.sprite.Group()
+peaks_group = pygame.sprite.Group()
 blood_group = pygame.sprite.Group()
 camera = Camera()
 arrow = Arrow(0, 0)
 
 start_screen()
-player, enemies, level_x, level_y, button, doors, next_level = None, None, None, None, None, None, None
+player, enemies, peaks,  level_x, level_y, button, doors, next_level = None, None, None, None, None, None, None, None
 clean()
 running = True
 while running:
+    # print(level)
     bullets_group.update()
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             running = False
+            with open("data/options.txt", 'w', encoding='utf-8') as f:
+                # print(str(volume) + str(blood))
+                f.write(str(volume) + str(blood))
+            with open("data/now_level.txt", 'w', encoding='utf-8') as f:
+                # print(str(volume) + str(blood))
+                f.write(str(now_level))
         if event.type == pygame.KEYDOWN:
             if event.key == pygame.K_SPACE:
                 player.shoot()
@@ -1541,6 +1825,8 @@ while running:
     enemies_group.update()
     blood_group.update()
     # изменяем ракурс камеры
+    # if check_cam:
+    #     camera.update(player)
     camera.update(player)
     # обновляем положение всех спрайтов
 
@@ -1551,9 +1837,3 @@ while running:
     pygame.display.flip()
     clock.tick(FPS)
 pygame.quit()
-
-
-
-
-
-
