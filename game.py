@@ -97,11 +97,12 @@ def generate_level(level):
 
 
 def clean():
-    global player, enemies, peaks, level_x, level_y, button, doors, next_level, key # , check_cam
+    global player, enemies, peaks, level_x, level_y, button, doors, next_level, key, alive # , check_cam
     for i in all_sprites:
         all_sprites.remove(i)
         i.kill()
     key = [False, False, False, False]
+    alive = True
     # check_cam = True
     # print(now_level, levels_list)
     player, enemies, peaks, level_x, level_y, button, doors, next_level = generate_level(load_level(levels_list[now_level]))
@@ -1628,8 +1629,9 @@ class Player(pygame.sprite.Sprite):
 
         if (pygame.sprite.spritecollideany(self, bullets_group) or pygame.sprite.spritecollideany(self, enemies_group)
                 or pygame.sprite.spritecollideany(self, peaks_group)):
-            global player_image_static, player_image_jumping, player_image_climbing # , check_cam
+            global player_image_static, player_image_jumping, player_image_climbing, alive # , check_cam
             herodeath_sound.play()
+            alive = False
             player_image_static = pygame.transform.scale(area_image, (40, 80))
             player_image_jumping = pygame.transform.scale(area_image, (40, 80))
             player_image_climbing = pygame.transform.scale(area_image, (40, 80))
@@ -1718,6 +1720,7 @@ tile_images = {'wall': load_image('box.png'), 'stair': load_image('stair.png'),
 player_image_static = load_image('hero.png', -1)
 player_image_jumping = load_image('herojump.png', -1)
 player_image_climbing = load_image('heroback.png', -1)
+alive = True
 enemy_image = load_image('enemy.png', -1)
 peak_image = load_image('peak.png', -1)
 bullet_image = load_image('bullet.png', -1)
@@ -1778,49 +1781,55 @@ while running:
                 # print(str(volume) + str(blood))
                 f.write(str(now_level))
         if event.type == pygame.KEYDOWN:
-            if event.key == pygame.K_SPACE:
-                player.shoot()
-                # shoot_sound.play()
-            if event.key == pygame.K_w:
-                key[0] = True
-                # player.picture()
-            if event.key == pygame.K_d:
-                key[1] = True
-                player.picture(True)
-            if event.key == pygame.K_s:
-                key[2] = True
-            if event.key == pygame.K_a:
-                key[3] = True
-                player.picture(False)
-            # print(key)
+            if alive:
+                if event.key == pygame.K_SPACE:
+                    player.shoot()
+                    # shoot_sound.play()
+                if event.key == pygame.K_w:
+                    key[0] = True
+                    # player.picture()
+                if event.key == pygame.K_d:
+                    key[1] = True
+                    player.picture(True)
+                if event.key == pygame.K_s:
+                    key[2] = True
+                if event.key == pygame.K_a:
+                    key[3] = True
+                    player.picture(False)
+                # print(key)
         if event.type == pygame.KEYUP:
-            if event.key == pygame.K_w:
-                key[0] = False
-                # player.picture()
-            if event.key == pygame.K_d:
-                key[1] = False
-            if event.key == pygame.K_s:
-                key[2] = False
-            if event.key == pygame.K_a:
-                key[3] = False
+            if alive:
+                if event.key == pygame.K_w:
+                    key[0] = False
+                    # player.picture()
+                if event.key == pygame.K_d:
+                    key[1] = False
+                if event.key == pygame.K_s:
+                    key[2] = False
+                if event.key == pygame.K_a:
+                    key[3] = False
         if event.type == pygame.MOUSEMOTION:
             x, y = event.pos
             arrow.update(x, y)
             if pygame.mouse.get_focused():
                 arrow_group.draw(screen)
         if event.type == MYEVENTTYPE:
-            for sprite in enemies_group:
-                sprite.shoot()
+            if alive:
+                for sprite in enemies_group:
+                    sprite.shoot()
         if event.type == pygame.KEYUP:           #писал виталя
             if event.key == pygame.K_ESCAPE:
                 menu()
                 if exit == 1:
                     exit = 0
-
+    if not alive:
+        key = [False, False, False, False]
         # print(key)
-    player.gravity()
+    if alive:
+        player.gravity()
     player_group.update(key)
-    button_group.update()
+    if alive:
+        button_group.update()
 
     enemies_group.update()
     blood_group.update()
