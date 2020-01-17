@@ -2,15 +2,15 @@ import pygame, sys, os, random
 from os import path
 
 pygame.init()
-# size = WIDTH, HEIGHT = 1600, 900
-size = WIDTH, HEIGHT = 1280, 1024
-screen = pygame.display.set_mode(size)
-# screen = pygame.display.set_mode(size, pygame.FULLSCREEN)
+size = WIDTH, HEIGHT = 1600, 900
+# size = WIDTH, HEIGHT = 1280, 1024
+# screen = pygame.display.set_mode(size)
+screen = pygame.display.set_mode(size, pygame.FULLSCREEN)
 # pygame.mouse.set_visible(False)
 screen.fill(pygame.Color('black'))
 
 
-def create_particles(position, sprite=None):
+def create_particles(position, sprite=None): #создани крови
     # количество создаваемых частиц
     particle_count = 100
     # возможные скорости
@@ -21,7 +21,7 @@ def create_particles(position, sprite=None):
             Particle(position, random.choice(range(-4, 4)), random.choice(range(-10, 2)))
 
 
-def load_image(name, colorkey=None):
+def load_image(name, colorkey=None): #загрузка изображения
     fullname = os.path.join('data', name)
     image = pygame.image.load(fullname).convert()
     if colorkey is not None:
@@ -33,7 +33,7 @@ def load_image(name, colorkey=None):
     return image
 
 
-def load_level(filename):
+def load_level(filename): #загрузка уровня
     filename = "data/" + filename
     with open(filename, 'r') as mapFile:
         level_map = [line.strip() for line in mapFile]
@@ -41,7 +41,7 @@ def load_level(filename):
     return level_map
 
 
-def generate_level(level):
+def generate_level(level): #создание уровня
     global player_image_static, player_image_jumping, player_image_climbing
     new_player, x, y = None, None, None
     xp = 0
@@ -100,7 +100,7 @@ def generate_level(level):
     return new_player, enemies, boss, peaks, x, y, button, doors, False
 
 
-def clean(change=True):
+def clean(change=True): #очистка уровня
     global player, enemies, boss, peaks, level_x, level_y, button, doors, next_level, key, alive, event_counter, level # , check_cam
     for i in all_sprites:
         all_sprites.remove(i)
@@ -113,7 +113,6 @@ def clean(change=True):
         level = min(level, 3)
         with open("data/pass_levels.txt", 'w', encoding='utf-8') as f:
             f.write(str(level))
-    # print(level)
     player, enemies, boss, peaks, level_x, level_y, button, doors, next_level = generate_level(load_level(levels_list[now_level]))
 
 
@@ -123,7 +122,7 @@ with open("data/options.txt", 'r') as f:
     blood = int(dop[1])
 
 
-def start_screen(volume_restart=None):
+def start_screen(volume_restart=None, change=True): #главный экран
     global volume, blood
     play_text = ["S.T.A.R.T. G.A.M.E."]
     load_text = ["L.O.A.D. G.A.M.E."]
@@ -317,7 +316,7 @@ def start_screen(volume_restart=None):
                 x, y = event.pos
                 arrow.update(x, y)
             if event.type == pygame.MOUSEBUTTONDOWN and flag == 1 or event.type == pygame.KEYUP and event.key == pygame.K_SPACE:
-                clean()
+                clean(change)
                 return
             if event.type == pygame.MOUSEBUTTONDOWN and flag == 4:
                 with open("data/options.txt", 'w', encoding='utf-8') as f:
@@ -335,7 +334,7 @@ def start_screen(volume_restart=None):
         clock.tick(FPS)
 
 
-def options():
+def options(): #экран настроек
     opt_text = ["<.B.A.C.K."]
     global volume
     global blood
@@ -530,7 +529,7 @@ flag3 = 0
 exit = 0
 
 
-def menu():
+def menu(): #экран внутриигрового меню
     opt_text = ["<.B.A.C.K."]
     global volume
     global blood
@@ -809,10 +808,9 @@ def menu():
 flag2 = 0
 with open("data/pass_levels.txt", 'r') as f:
     level = int([line.strip() for line in f][0])
-# update_level = not level == 3
 
 
-def load():
+def load(): #экран загрузки уровня
     global flag2
     global level
     global now_level
@@ -999,10 +997,8 @@ def load():
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 with open("data/options.txt", 'w', encoding='utf-8') as f:
-                    # print(str(volume) + str(blood))
                     f.write(str(volume) + str(blood))
                 with open("data/now_level.txt", 'w', encoding='utf-8') as f:
-                    # print(str(volume) + str(blood))
                     f.write(str(now_level))
                 terminate()
             if event.type == pygame.MOUSEMOTION:
@@ -1016,40 +1012,22 @@ def load():
                 now_level = 0
                 clean(False)
                 pygame.display.flip()
-                # print(now_level)
                 with open("data/now_level.txt", 'w', encoding='utf-8') as f:
                     f.write(str(now_level))
-                # if update_level:
-                #     level = now_level + 1
-                    # print(level)
-                    # with open("data/pass_levels.txt", 'w', encoding='utf-8') as f:
-                    #     f.write(str(level))
                 return
             if event.type == pygame.MOUSEBUTTONDOWN and flag2 == 3:
                 now_level = 1
                 clean(False)
                 pygame.display.flip()
-                # print(now_level)
                 with open("data/now_level.txt", 'w', encoding='utf-8') as f:
                     f.write(str(now_level))
-                # if update_level:
-                #     level = now_level + 1
-                #     # print(level)
-                #     with open("data/pass_levels.txt", 'w', encoding='utf-8') as f:
-                #         f.write(str(level))
                 return
             if event.type == pygame.MOUSEBUTTONDOWN and flag2 == 4:
                 now_level = 2
                 clean(False)
                 pygame.display.flip()
-                # print(now_level)
                 with open("data/now_level.txt", 'w', encoding='utf-8') as f:
                     f.write(str(now_level))
-                #if update_level:
-                #     level = now_level + 1
-                #     # print(level)
-                #     with open("data/pass_levels.txt", 'w', encoding='utf-8') as f:
-                #        f.write(str(level))
                 return
         pygame.display.flip()
         clock.tick(FPS)
@@ -1058,7 +1036,7 @@ def load():
 flag4 = 0
 
 
-def contin():
+def contin(): #экран прохождения уровня
     global flag4
     next_text = ["N.E.X.T.>"]
     exit_text = ["M.E.N.U."]
@@ -1163,6 +1141,7 @@ def contin():
                 x, y = event.pos
                 arrow.update(x, y)
             if event.type == pygame.MOUSEBUTTONDOWN and flag4 == 1 or event.type == pygame.KEYUP and event.key == pygame.K_SPACE:
+                clean()
                 return
             if event.type == pygame.MOUSEBUTTONDOWN and flag4 == 2:
                 start_screen()
@@ -1174,7 +1153,7 @@ def contin():
 flag5 = 0
 
 
-def died():
+def died(change=True): #экран поражения
     global flag5
     retry_text = ["<.R.E.T.R.Y."]
     exit_text = ["M.E.N.U."]
@@ -1282,7 +1261,7 @@ def died():
                 clean(False)
                 return
             if event.type == pygame.MOUSEBUTTONDOWN and flag5 == 2:
-                start_screen()
+                start_screen(None, change)
                 return
         pygame.display.flip()
         clock.tick(FPS)
@@ -1291,7 +1270,7 @@ def died():
 flag6 = 0
 
 
-def end_screen():
+def end_screen(): #финальный экран
     global flag6
     next_text = ["N.E.X.T.>"]
     fon = pygame.transform.scale(load_image('end.jpg'), (WIDTH, HEIGHT))
@@ -1361,12 +1340,12 @@ def end_screen():
         clock.tick(FPS)
 
 
-def terminate():
+def terminate(): #выход
     pygame.quit()
     sys.exit()
 
 
-class Tile(pygame.sprite.Sprite):
+class Tile(pygame.sprite.Sprite): #класс плиток
     def __init__(self, tile_type, pos_x, pos_y):
         super().__init__(tiles_group, all_sprites)
         self.image = tile_images[tile_type]
@@ -1377,7 +1356,7 @@ class Tile(pygame.sprite.Sprite):
             self.add(stairs_group)
 
 
-class Camera:
+class Camera: #класс камеры
     # зададим начальный сдвиг камеры
     def __init__(self):
         self.dx = 0
@@ -1394,7 +1373,7 @@ class Camera:
         self.dy = -(target.rect.y + target.rect.h // 2 - HEIGHT // 2)
 
 
-class Door(pygame.sprite.Sprite):
+class Door(pygame.sprite.Sprite): #класс портала
     def __init__(self, pos_x, pos_y, definition):
         super().__init__(doors_group, all_sprites)
         self.image = pygame.transform.flip(door_image_closed, not definition, False)
@@ -1407,7 +1386,7 @@ class Door(pygame.sprite.Sprite):
         next_level = True
 
 
-class Button(pygame.sprite.Sprite):
+class Button(pygame.sprite.Sprite): #класс кнопки портала
     def __init__(self, pos_x, pos_y):
         super().__init__(button_group, all_sprites)
         self.image = button_image_unclicked
@@ -1430,7 +1409,7 @@ class Arrow(pygame.sprite.Sprite):
         self.rect.y = pos_y
 
 
-class Bullet(pygame.sprite.Sprite):
+class Bullet(pygame.sprite.Sprite): #класс пуль
     def __init__(self, x, y, definition, boss=None):
         pygame.sprite.Sprite.__init__(self)
         if boss is not None:
@@ -1471,7 +1450,7 @@ class Bullet(pygame.sprite.Sprite):
             self.disappear = True
 
 
-class Particle(pygame.sprite.Sprite):
+class Particle(pygame.sprite.Sprite): #класс крови
     # сгенерируем частицы разного размера
     fire = [load_image("blood.png", -1)]
     for scale in (1, 2, 3):
@@ -1502,14 +1481,14 @@ class Particle(pygame.sprite.Sprite):
                 died()
 
 
-class Peak(pygame.sprite.Sprite):
+class Peak(pygame.sprite.Sprite): #класс пик
     def __init__(self, pos_x, pos_y):
         super().__init__(peaks_group, all_sprites)
         self.image = pygame.transform.scale(peak_image, (50, 50))
         self.rect = self.image.get_rect().move(tile_width * pos_x, tile_height * pos_y)
 
 
-class Area(pygame.sprite.Sprite):
+class Area(pygame.sprite.Sprite): #зона видимости злодеев
     def __init__(self, pos_x, pos_y, definition):
         super().__init__(all_sprites)
         self.image = pygame.transform.scale(area_image, (800, 80))
@@ -1519,7 +1498,7 @@ class Area(pygame.sprite.Sprite):
             self.rect = self.image.get_rect().move(tile_width * pos_x - 720, tile_height * pos_y - 30)
 
 
-class Boss(pygame.sprite.Sprite):
+class Boss(pygame.sprite.Sprite): #класс босса
     def __init__(self, pos_x, pos_y):
         super().__init__(boss_group, all_sprites)
         self.image = pygame.transform.scale(boss_image, (80, 80))
@@ -1567,7 +1546,7 @@ class Boss(pygame.sprite.Sprite):
             shoot_sound.play()
 
 
-class Enemy(pygame.sprite.Sprite):
+class Enemy(pygame.sprite.Sprite): #класс быка
     def __init__(self, pos_x, pos_y, defenition):
         super().__init__(enemies_group, all_sprites)
         self.image = pygame.transform.scale(enemy_image, (80, 80))
@@ -1602,7 +1581,7 @@ class Enemy(pygame.sprite.Sprite):
             shoot_sound.play()
 
 
-class Player(pygame.sprite.Sprite):
+class Player(pygame.sprite.Sprite): #класс игрока
     def __init__(self, pos_x, pos_y):
         super().__init__(player_group, all_sprites)
         self.image = self.image = pygame.transform.scale(player_image_static, (40, 80))
@@ -1646,15 +1625,9 @@ class Player(pygame.sprite.Sprite):
                     f.write(str(now_level))
             else:
                 contin()
-                # clean()
                 pygame.display.flip()
                 with open("data/now_level.txt", 'w', encoding='utf-8') as f:
                     f.write(str(now_level))
-                #if update_level:
-                #    level = now_level
-                #    with open("data/pass_levels.txt", 'w', encoding='utf-8') as f:
-                #        f.write(str(level))
-#
         if (pygame.sprite.spritecollideany(self, bullets_group) or pygame.sprite.spritecollideany(self, enemies_group)
                 or pygame.sprite.spritecollideany(self, peaks_group) or pygame.sprite.spritecollideany(self, boss_group)):
             global player_image_static, player_image_jumping, player_image_climbing, alive # , check_cam
@@ -1670,7 +1643,7 @@ class Player(pygame.sprite.Sprite):
             if blood == 0:
                 create_particles((self.rect.centerx, self.rect.centery), self)
             else:
-                died()
+                died(False)
 
     def shoot(self):
         if self.definition:
@@ -1743,7 +1716,7 @@ door_image_opened = load_image('door2.png')
 area_image = load_image("area.png", -1)
 arrow_image = load_image("arrow2.png")
 tile_width = tile_height = 50
-levels_list = ['level6.txt', 'level6.txt', 'level6.txt']
+levels_list = ['level1.txt', 'level2.txt', 'level3.txt']
 shoot_sound = pygame.mixer.Sound(path.join('sounds', 'shoot.wav'))
 death_sound = pygame.mixer.Sound(path.join('sounds', 'death.wav'))
 herodeath_sound = pygame.mixer.Sound(path.join('sounds', 'herodeath.wav'))
