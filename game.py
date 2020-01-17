@@ -2,10 +2,10 @@ import pygame, sys, os, random
 from os import path
 
 pygame.init()
-size = WIDTH, HEIGHT = 1600, 900
-# size = WIDTH, HEIGHT = 1280, 1024
-# screen = pygame.display.set_mode(size)
-screen = pygame.display.set_mode(size, pygame.FULLSCREEN)
+# size = WIDTH, HEIGHT = 1600, 900
+size = WIDTH, HEIGHT = 1280, 1024
+screen = pygame.display.set_mode(size)
+# screen = pygame.display.set_mode(size, pygame.FULLSCREEN)
 # pygame.mouse.set_visible(False)
 screen.fill(pygame.Color('black'))
 
@@ -100,15 +100,20 @@ def generate_level(level):
     return new_player, enemies, boss, peaks, x, y, button, doors, False
 
 
-def clean():
-    global player, enemies, boss, peaks, level_x, level_y, button, doors, next_level, key, alive, event_counter # , check_cam
+def clean(change=True):
+    global player, enemies, boss, peaks, level_x, level_y, button, doors, next_level, key, alive, event_counter, level # , check_cam
     for i in all_sprites:
         all_sprites.remove(i)
         i.kill()
     event_counter = 0
     key = [False, False, False, False]
     alive = True
-    print(now_level)
+    if change:
+        level += 1
+        level = min(level, 3)
+        with open("data/pass_levels.txt", 'w', encoding='utf-8') as f:
+            f.write(str(level))
+    # print(level)
     player, enemies, boss, peaks, level_x, level_y, button, doors, next_level = generate_level(load_level(levels_list[now_level]))
 
 
@@ -804,7 +809,7 @@ def menu():
 flag2 = 0
 with open("data/pass_levels.txt", 'r') as f:
     level = int([line.strip() for line in f][0])
-update_level = not level == 3
+# update_level = not level == 3
 
 
 def load():
@@ -899,7 +904,7 @@ def load():
                 intro_rect.x = 55
                 text_coord += intro_rect.height
                 screen.blit(string_rendered, intro_rect)
-        if level >= 0:
+        if level >= 1:
             x1_2 = args[2][0]
             x2_2 = args[2][1]
             y1_2 = args[2][2]
@@ -929,7 +934,7 @@ def load():
                     intro_rect.x = 55
                     text_coord += intro_rect.height
                     screen.blit(string_rendered, intro_rect)
-        if level >= 1:
+        if level >= 2:
             x1_3 = args[3][0]
             x2_3 = args[3][1]
             y1_3 = args[3][2]
@@ -959,7 +964,7 @@ def load():
                     intro_rect.x = 55
                     text_coord += intro_rect.height
                     screen.blit(string_rendered, intro_rect)
-        if level >= 2:
+        if level >= 3:
             x1_4 = args[4][0]
             x2_4 = args[4][1]
             y1_4 = args[4][2]
@@ -1009,42 +1014,42 @@ def load():
                 return
             if event.type == pygame.MOUSEBUTTONDOWN and flag2 == 2:
                 now_level = 0
-                clean()
+                clean(False)
                 pygame.display.flip()
                 # print(now_level)
                 with open("data/now_level.txt", 'w', encoding='utf-8') as f:
                     f.write(str(now_level))
-                if update_level:
-                    level = now_level + 1
+                # if update_level:
+                #     level = now_level + 1
                     # print(level)
-                    with open("data/pass_levels.txt", 'w', encoding='utf-8') as f:
-                        f.write(str(level))
+                    # with open("data/pass_levels.txt", 'w', encoding='utf-8') as f:
+                    #     f.write(str(level))
                 return
             if event.type == pygame.MOUSEBUTTONDOWN and flag2 == 3:
                 now_level = 1
-                clean()
+                clean(False)
                 pygame.display.flip()
                 # print(now_level)
                 with open("data/now_level.txt", 'w', encoding='utf-8') as f:
                     f.write(str(now_level))
-                if update_level:
-                    level = now_level + 1
-                    # print(level)
-                    with open("data/pass_levels.txt", 'w', encoding='utf-8') as f:
-                        f.write(str(level))
+                # if update_level:
+                #     level = now_level + 1
+                #     # print(level)
+                #     with open("data/pass_levels.txt", 'w', encoding='utf-8') as f:
+                #         f.write(str(level))
                 return
             if event.type == pygame.MOUSEBUTTONDOWN and flag2 == 4:
                 now_level = 2
-                clean()
+                clean(False)
                 pygame.display.flip()
                 # print(now_level)
                 with open("data/now_level.txt", 'w', encoding='utf-8') as f:
                     f.write(str(now_level))
-                if update_level:
-                    level = now_level + 1
-                    # print(level)
-                    with open("data/pass_levels.txt", 'w', encoding='utf-8') as f:
-                        f.write(str(level))
+                #if update_level:
+                #     level = now_level + 1
+                #     # print(level)
+                #     with open("data/pass_levels.txt", 'w', encoding='utf-8') as f:
+                #        f.write(str(level))
                 return
         pygame.display.flip()
         clock.tick(FPS)
@@ -1274,7 +1279,7 @@ def died():
                 x, y = event.pos
                 arrow.update(x, y)
             if event.type == pygame.MOUSEBUTTONDOWN and flag5 == 1 or event.type == pygame.KEYUP and event.key == pygame.K_SPACE:
-                clean()
+                clean(False)
                 return
             if event.type == pygame.MOUSEBUTTONDOWN and flag5 == 2:
                 start_screen()
@@ -1350,7 +1355,6 @@ def end_screen():
                 x, y = event.pos
                 arrow.update(x, y)
             if (event.type == pygame.MOUSEBUTTONDOWN and flag6 == 1) or (event.type == pygame.KEYUP and event.key == pygame.K_SPACE):
-                print(1)
                 start_screen()
                 return
         pygame.display.flip()
@@ -1642,15 +1646,15 @@ class Player(pygame.sprite.Sprite):
                     f.write(str(now_level))
             else:
                 contin()
-                clean()
+                # clean()
                 pygame.display.flip()
                 with open("data/now_level.txt", 'w', encoding='utf-8') as f:
                     f.write(str(now_level))
-                if update_level:
-                    level = now_level
-                    with open("data/pass_levels.txt", 'w', encoding='utf-8') as f:
-                        f.write(str(level))
-
+                #if update_level:
+                #    level = now_level
+                #    with open("data/pass_levels.txt", 'w', encoding='utf-8') as f:
+                #        f.write(str(level))
+#
         if (pygame.sprite.spritecollideany(self, bullets_group) or pygame.sprite.spritecollideany(self, enemies_group)
                 or pygame.sprite.spritecollideany(self, peaks_group) or pygame.sprite.spritecollideany(self, boss_group)):
             global player_image_static, player_image_jumping, player_image_climbing, alive # , check_cam
@@ -1739,7 +1743,7 @@ door_image_opened = load_image('door2.png')
 area_image = load_image("area.png", -1)
 arrow_image = load_image("arrow2.png")
 tile_width = tile_height = 50
-levels_list = ['level1.txt', 'level2.txt', 'level3.txt']
+levels_list = ['level6.txt', 'level6.txt', 'level6.txt']
 shoot_sound = pygame.mixer.Sound(path.join('sounds', 'shoot.wav'))
 death_sound = pygame.mixer.Sound(path.join('sounds', 'death.wav'))
 herodeath_sound = pygame.mixer.Sound(path.join('sounds', 'herodeath.wav'))
@@ -1771,7 +1775,7 @@ arrow = Arrow(0, 0)
 
 start_screen()
 player, enemies, boss, peaks,  level_x, level_y, button, doors, next_level = None, None, None, None, None, None, None, None, None
-clean()
+clean(False)
 running = True
 while running:
     bullets_group.update()
